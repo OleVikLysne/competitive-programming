@@ -5,11 +5,18 @@ class SegmentTree:
     def __init__(self, array, op=sum):
         self.n = len(array)
         self.op = op
-        self.T = [0]*self.n + array
-        for i in range(self.n-1, 0, -1):
-            self.T[i] = self.op((
-                self.T[self.left(i)],
-                self.T[self.right(i)]
+        if op == max:
+            val = -2**62
+        elif op == min:
+            val = 2**62
+        else:
+            val = 0
+
+        self.T = [val]*self.n + array
+        for i in range(len(self.T)-1, 0, -2):
+            self.T[self.parent(i)] = self.op((
+                self.T[i],
+                self.T[self.sibling(i)]
             ))
 
     def __repr__(self):
@@ -18,18 +25,12 @@ class SegmentTree:
     @property
     def root(self):
         return self.T[1]
-
-    def left(self, i):
-        return 2*i
-
-    def right(self, i):
-        return 2*i+1
-
-    def parent(self, i):
-        return i // 2
-
+    
     def index(self, i):
         return self.n + i
+    
+    def parent(self, i):
+        return i // 2
 
     def sibling(self, i):
         return i+1 if i % 2 == 0 else i-1
@@ -37,13 +38,12 @@ class SegmentTree:
     def update(self, i, val):
         i = self.index(i)
         self.T[i] = val
-        while i > 1:
-            parent = self.parent(i)
-            self.T[parent] = self.op((
+        while (p := self.parent(i)) > 0:
+            self.T[p] = self.op((
                 self.T[i],
                 self.T[self.sibling(i)]
             ))
-            i = parent
+            i = p
 
     # [l, r], inclusive on both sides
     def _query(self, l, r):
@@ -55,12 +55,7 @@ class SegmentTree:
         r = self.index(r)
         yield self.T[l]
         yield self.T[r]
-
-        while True:
-            pl = self.parent(l)
-            pr = self.parent(r)
-            if pl == pr:
-                return
+        while (pl := self.parent(l)) != (pr := self.parent(r)):
             if l % 2 == 0:
                 yield self.T[self.sibling(l)]
             if r % 2 == 1:
@@ -69,6 +64,7 @@ class SegmentTree:
 
     def query(self, l, r):
         return self.op(self._query(l, r))
+
 
 
 n, q = map(int, stdin.readline().split())

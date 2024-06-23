@@ -2,69 +2,65 @@ from sys import stdin, stdout
 
 DEFAULT_VAL = (-2**30,)
 
-
 class SegmentTree:
     def __init__(self, array, op=sum):
         self.n = len(array)
         self.op = op
-        self.tree = [DEFAULT_VAL]*self.n + array
-        for i in range(self.n-1, 0, -1):
-            self.tree[i] = self.op((self.tree[self.left(i)], self.tree[self.right(i)]))
+        val = DEFAULT_VAL
+
+        self.T = [val]*self.n + array
+        for i in range(len(self.T)-1, 0, -2):
+            self.T[self.parent(i)] = self.op((
+                self.T[i],
+                self.T[self.sibling(i)]
+            ))
 
     def __repr__(self):
-        return str(self.tree)
-    
+        return str(self.T)
+
     @property
     def root(self):
-        return self.tree[1]
-
-    def left(self, i):
-        return 2*i
-
-    def right(self, i):
-        return 2*i+1
-    
-    def parent(self, i):
-        return i // 2
+        return self.T[1]
     
     def index(self, i):
         return self.n + i
+    
+    def parent(self, i):
+        return i // 2
+
+    def sibling(self, i):
+        return i+1 if i % 2 == 0 else i-1
 
     def update(self, i, val):
         i = self.index(i)
-        self.tree[i] = val
-        while i > 1:
-            i = self.parent(i)
-            self.tree[i] = self.op((
-                self.tree[self.left(i)], 
-                self.tree[self.right(i)]
-                ))
+        self.T[i] = val
+        while (p := self.parent(i)) > 0:
+            self.T[p] = self.op((
+                self.T[i],
+                self.T[self.sibling(i)]
+            ))
+            i = p
 
     # [l, r], inclusive on both sides
     def _query(self, l, r):
+        if l == r:
+            yield self.T[self.index(l)]
+            return
+
         l = self.index(l)
         r = self.index(r)
-        if l == r:
-            yield self.tree[l]
-            return
-        
-        yield self.tree[l]
-        yield self.tree[r]
-        while True:
-            pl = self.parent(l)
-            pr = self.parent(r)
-            if pl == pr:
-                return
+        yield self.T[l]
+        yield self.T[r]
+        while (pl := self.parent(l)) != (pr := self.parent(r)):
             if l % 2 == 0:
-                yield self.tree[l+1]
+                yield self.T[self.sibling(l)]
             if r % 2 == 1:
-                yield self.tree[r-1]
-
+                yield self.T[self.sibling(r)]
             l, r = pl, pr
-
 
     def query(self, l, r):
         return self.op(self._query(l, r))
+
     
 
 tree = SegmentTree([DEFAULT_VAL]*200_000, op=max)
@@ -88,7 +84,7 @@ for _ in range(n):
         name, level = stdin.readline().split()
         level = int(level)
         j = cat_to_idx[name]
-        level += tree.tree[tree.index(j)][0]
+        level += tree.T[tree.index(j)][0]
         tree.update(j, (level, j))
     
     elif q == 2:
