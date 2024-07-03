@@ -1,41 +1,54 @@
 board = [[int(x) for x in input().split()] for _ in range(4)]
-def swipe_gen(n):
-    if n == 0:
+n = int(input())
+
+
+def left():
+    b = []
+    for j in reversed(range(4)):
+        row = []
         for i in range(4):
-            for j in reversed(range(4)):
-                yield (i, j)
+            row.append(board[i][j])
+        b.append(row)
+    return b
 
-    elif n == 1:
-        for j in range(4):
-            for i in reversed(range(4)):
-                yield (i, j)
-
-    elif n == 2:
-        for i in reversed(range(4)):
-            for j in range(4):
-                yield (i, j)
-
-    else:
-        for j in range(4):
-            for i in range(4):
-                yield (i, j)
+if n == 0:
+    board = left()
+    board = left()
+elif n == 1:
+    board = left()
+    board = left()
+    board = left()
+elif n == 3:
+    board = left()
 
 
-gen = swipe_gen(int(input()))
-found = False
-for it, (i, j) in enumerate(gen):
-    if it % 4 == 0:
-        prev = (i, j)
-        found = False
-        continue
-    x, y = prev
-    if board[i][j] == 0 or found:
-        board[i][j], board[x][y] = board[x][y], board[i][j]
-    elif board[x][y] == board[i][j]:
-        board[x][y] = 0
-        board[i][j] = board[i][j] * 2
-        found = True
-    prev = (i, j)
+for i in range(4):
+    for j in reversed(range(4)):
+        for k in reversed(range(j)):
+            if board[i][k] == 0:
+                continue
+            if board[i][k] == board[i][j]:
+                board[i][j] *= 2
+                board[i][k] = 0
+            break
+
+
+
+for i in range(4):
+    for j in range(4):
+        if board[i][j] == 0:
+            board[i].pop(j)
+            board[i].insert(0, 0)
+
+if n == 0:
+    board = left()
+    board = left()
+elif n == 1:
+    board = left()
+elif n == 3:
+    board = left()
+    board = left()
+    board = left()
 
 for row in board:
     print(" ".join(str(x) for x in row))
