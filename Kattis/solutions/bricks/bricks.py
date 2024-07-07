@@ -1,16 +1,10 @@
 from sys import stdin
 
 
-def rotate_left(formation):
-    b = []
+def rotate_right(formation):
     cols = len(formation[0])
     rows = len(formation)
-    for j in range(cols - 1, -1, -1):
-        row = []
-        for i in range(rows):
-            row.append(formation[i][j])
-        b.append(row)
-    return b
+    return [[formation[i][j] for i in range(rows)] for j in range(cols)]
 
 
 def flatten(formation):
@@ -42,15 +36,13 @@ def f(round, board, mem):
 
     formation, s = round_list[round]
     flat_up = flatten(formation)
-    flat_left = flatten(rotate_left(formation))
-    flat_down = [x for x in flat_up]
-    flat_down.reverse()
-    flat_right = [x for x in flat_left]
-    flat_right.reverse()
+    flat_right = flatten(rotate_right(formation))
+    flat_down = [x for x in reversed(flat_up)]
+    flat_left = [x for x in reversed(flat_right)]
 
     best_score = -1
     for flat_form in (flat_up, flat_left, flat_down, flat_right):
-        for offset in range(0, len(board) - len(flat_form) + 1):
+        for offset in range(len(board) - len(flat_form) + 1):
             new_board, collapses = add_formation(board, flat_form, offset)
             score = s * collapses + f(round + 1, new_board, mem)
             best_score = max(best_score, score)
