@@ -1,26 +1,4 @@
-import sys
-
-input = sys.stdin.readline
-
-n, k = map(int, input().split())
-
-
-def eval_match(s1, s2):
-    x = k
-    for i in range(k):
-        if s1[i] == s2[i]:
-            x -= 1
-    return x
-
-
-strings = []
-edges = []
-for j in range(n):
-    s = tuple(ord(x) for x in input().rstrip())
-    for i in range(len(strings)):
-        x = eval_match(s, strings[i])
-        edges.append((i, j, x))
-    strings.append(s)
+edges: list[tuple[int, int, int]] = ...  # u, v, w
 
 
 def find(parent, i):
@@ -58,9 +36,3 @@ def kruskal(edges, num_nodes):
             union(parent, rank, x, y)
 
     return selected_edges, tree_sum
-
-
-selected_edges, unlikeness = kruskal(edges, n)
-print(unlikeness)
-for i, j, _ in selected_edges:
-    print(i, j)
