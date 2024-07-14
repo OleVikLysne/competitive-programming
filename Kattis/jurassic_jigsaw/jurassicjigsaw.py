@@ -32,10 +32,9 @@ def find(parent, i):
 def union(parent, rank, x, y):
     x = find(parent, x)
     y = find(parent, y)
-    if rank[x] < rank[y]:
-        parent[x] = y
-    elif rank[x] > rank[y]:
+    if rank[x] > rank[y]:
         parent[y] = x
+        rank[x] += 1
     else:
         parent[x] = y
         rank[y] += 1
