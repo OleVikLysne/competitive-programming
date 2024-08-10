@@ -15,10 +15,11 @@ class SegmentTree:
         else:
             self.n = len(array)
             self.T = [val]*self.n + array
-        for i in range(self.n*2-1, 1, -2):
-            self.T[self.parent(i)] = self.op((
-                self.T[i],
-                self.T[self.sibling(i)]
+
+        for i in range(self.n-1, 0, -1):
+            self.T[i] = self.op((
+                self.T[self.left(i)],
+                self.T[self.right(i)]
             ))
 
     def __repr__(self):
@@ -28,17 +29,17 @@ class SegmentTree:
     def root(self):
         return self.T[1]
     
+    def index(self, i):
+        return self.n + i
+
     def reverse_index(self, i):
         return i - self.n
     
     def is_leaf(self, i):
         return i >= self.n
     
-    def index(self, i):
-        return self.n + i
-    
     def parent(self, i):
-        return i // 2
+        return i >> 1
 
     def sibling(self, i):
         return i+1 if i % 2 == 0 else i-1
@@ -52,12 +53,11 @@ class SegmentTree:
     def update(self, i, val):
         i = self.index(i)
         self.T[i] = val
-        while (p := self.parent(i)) > 0:
-            self.T[p] = self.op((
-                self.T[i],
-                self.T[self.sibling(i)]
+        while (i := self.parent(i)) > 0:
+            self.T[i] = self.op((
+                self.T[self.left(i)],
+                self.T[self.right(i)]
             ))
-            i = p
 
     # [l, r], inclusive on both sides
     def _query(self, l, r):
@@ -71,9 +71,9 @@ class SegmentTree:
         yield self.T[r]
         while (pl := self.parent(l)) != (pr := self.parent(r)):
             if l % 2 == 0:
-                yield self.T[self.sibling(l)]
+                yield self.T[l+1]
             if r % 2 == 1:
-                yield self.T[self.sibling(r)]
+                yield self.T[r-1]
             l, r = pl, pr
 
     def query(self, l, r):
