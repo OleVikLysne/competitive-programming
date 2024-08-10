@@ -1,6 +1,5 @@
 class SegmentTree:
-    def __init__(self, array, op=sum):
-        self.n = len(array)
+    def __init__(self, array, op=sum, pad = False):
         self.op = op
         if op == max:
             val = -2**62
@@ -9,8 +8,14 @@ class SegmentTree:
         else:
             val = 0
 
-        self.T = [val]*self.n + array
-        for i in range(len(self.T)-1, 0, -2):
+        if pad:
+            self.n = 2**(len(array)-1).bit_length()
+            pad_amount = self.n - len(array)
+            self.T = [val]*self.n + array + [val]*pad_amount
+        else:
+            self.n = len(array)
+            self.T = [val]*self.n + array
+        for i in range(self.n*2-1, 1, -2):
             self.T[self.parent(i)] = self.op((
                 self.T[i],
                 self.T[self.sibling(i)]
@@ -23,6 +28,12 @@ class SegmentTree:
     def root(self):
         return self.T[1]
     
+    def reverse_index(self, i):
+        return i - self.n
+    
+    def is_leaf(self, i):
+        return i >= self.n
+    
     def index(self, i):
         return self.n + i
     
@@ -31,6 +42,12 @@ class SegmentTree:
 
     def sibling(self, i):
         return i+1 if i % 2 == 0 else i-1
+    
+    def left(self, i):
+        return 2 * i
+
+    def right(self, i):
+        return 2 * i + 1
 
     def update(self, i, val):
         i = self.index(i)
