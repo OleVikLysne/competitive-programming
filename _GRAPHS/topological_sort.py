@@ -5,11 +5,13 @@ def topological_sort(g: list[list[int]], roots: list[int]):
     if not roots:
         return False
 
-    topo_order = []
-    visited = [False]*len(g)
+    n = len(g)
+    topo_order = [-1]*n
+    visited = [False]*n
     rec_stack = set()
-
+    i = n - 1
     def dfs(v):
+        nonlocal i
         if v in rec_stack:
             return False # not a DAG
         if not visited[v]:
@@ -21,11 +23,11 @@ def topological_sort(g: list[list[int]], roots: list[int]):
                     return False
             rec_stack.remove(v)
 
-            topo_order.append(v)
+            topo_order[i] = v
+            i -= 1
         return True
 
     for root in roots:
         if not dfs(root):
             return False
-    topo_order.reverse()
     return topo_order

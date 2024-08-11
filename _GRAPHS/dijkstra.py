@@ -10,7 +10,7 @@ def dijkstra(source):
     pq = [(0, source)]
     while pq:
         _, u = heapq.heappop(pq)
-        for (v, w) in g[u]:
+        for v, w in g[u]:
             if dist[v] > dist[u]+w:
                 dist[v] = dist[u]+w
                 prev[v] = u

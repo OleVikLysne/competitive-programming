@@ -11,7 +11,6 @@ class Trie:
     def query(self, word: str):
         current = self.root
         for char in word:
-            if char not in current:
+            if (current := current.get(char)) is None:
                 return False
-            current = current[char]
         return "*" in current
