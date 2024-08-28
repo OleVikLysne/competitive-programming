@@ -1,0 +1,6 @@
+[package]
+name = "a_fast_walk_in_the_woods"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
