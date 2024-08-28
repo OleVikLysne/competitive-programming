@@ -1,5 +1,4 @@
 const N: usize = 2500;
-
 use std::collections::HashMap;
 
 fn main() {
@@ -21,7 +20,7 @@ fn main() {
         let y: u32 = foo.next().unwrap().parse().unwrap();
         intersections.push((x, y))
     }
-    let mut g: Vec<Vec<usize>> = vec![vec![usize::MAX; 4]; n];
+    let mut g: Vec<[usize; 4]>  = vec![[usize::MAX; 4]; n];
     for _ in 0..m {
         buf.clear();
         let _ = stdin.read_line(&mut buf);
@@ -29,10 +28,9 @@ fn main() {
         let i: usize = foo.next().unwrap().parse::<usize>().unwrap()-1;
         let j: usize = foo.next().unwrap().parse::<usize>().unwrap()-1;
         let k: i32 = foo.next().unwrap().parse().unwrap();
-        let dir1 = get_dir(i, j, &intersections);
-        let dir2 = get_dir(j, i, &intersections);
-        g[i][dir1 as usize] = j;
-        g[j][dir2 as usize] = i;
+        let d = get_dir(i, j, &intersections);
+        g[i][d] = j;
+        g[j][(d+2) % 4] = i;
         add_edge(i, j, k, &mut edges);
     }
 
@@ -67,7 +65,8 @@ fn main() {
             println!("{} {}", intersections[i].0, intersections[i].1);
             break
         }
-        let next_pos = {
+        j = i;
+        i = {
             if n == 1 {
                 g[i][moves[0]]
             } else if n == 2 {
@@ -81,8 +80,6 @@ fn main() {
                 g[i][d]
             }
         };
-        j = i;
-        i = next_pos;
         d = get_dir(j, i, &intersections);
         decrement_edge(i, j, 1, &mut edges);
         let t = (j, i);
@@ -91,9 +88,7 @@ fn main() {
             for z in *lb..path.len() {
                 let (x, y) = &path[z];
                 min_val = min_val.min(get_edge(*x, *y, &edges));
-                if min_val <= 4 {
-                    break
-                }
+                if min_val <= 4 { break }
             }
             min_val -= 4;
             if min_val > 0 {
@@ -111,7 +106,7 @@ fn main() {
 
 }
 
-fn valid_moves(i: usize, prev_pos: usize, g: &Vec<Vec<usize>>, edges: & [[i32; N]; N]) -> Vec<usize> {
+fn valid_moves(i: usize, prev_pos: usize, g: &Vec<[usize; 4]>, edges: & [[i32; N]; N]) -> Vec<usize> {
     let mut l: Vec<usize> = Vec::new();
     for (x, j) in g[i].iter().enumerate() {
         if *j != usize::MAX && *j != prev_pos && get_edge(i, *j, edges) > 0 {
@@ -122,18 +117,29 @@ fn valid_moves(i: usize, prev_pos: usize, g: &Vec<Vec<usize>>, edges: & [[i32; N
 }
 
 fn get_dir(i: usize, j: usize, intersections: &[(u32, u32)]) -> usize {
+    /*
+    E = 0
+    N = 1
+    W = 2
+    S = 3
+     */
     let (x1, y1) = &intersections[i];
     let (x2, y2) = &intersections[j];
-    if x1 == x2 {
-        if y1 > y2 {
-            return 3
+    return {
+        if x1 == x2 {
+            if y1 > y2 {
+                3
+            } else {
+                1
+            }
+        } else {
+            if x1 > x2 {
+                2
+            } else {
+                0
+            }
         }
-        return 1
     }
-    if x1 > x2 {
-        return 2
-    }
-    return 0
 }
 
 fn add_edge(mut i: usize, mut j: usize, k: i32, edges: &mut [[i32; N]; N]) {
