@@ -1,6 +1,5 @@
 [workspace]
-resolver = "1"
 
 members = [
-    "Kattis/nice_path", "Kattis/a_different_list_game", "Kattis/a_fast_walk_in_the_woods",
+    "Kattis/nice_path", "Kattis/a_different_list_game", "Kattis/a_fast_walk_in_the_woods", "Kattis/baza",
 ]

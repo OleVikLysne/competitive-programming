@@ -3,4 +3,6 @@ test.*
 target
 *.exe
 *.pdb
+*.in
+*.ans
 Cargo.lock
