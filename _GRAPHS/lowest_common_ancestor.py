@@ -27,4 +27,5 @@ def lca(u, v):
             u = anc_matrix[i][u]
             v = anc_matrix[i][v]
 
-    return anc_matrix[0][v]
+    ancestor = anc_matrix[0][v]
+    return max(1, ancestor)
