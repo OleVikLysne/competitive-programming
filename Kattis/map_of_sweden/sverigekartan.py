@@ -20,6 +20,7 @@ def valid_moves(i, j):
 
 def dfs(i, j):
     l = 1
+    visited[i][j] = True
     stack = [(i, j)]
     while stack:
         for x, y in valid_moves(*stack.pop()):
@@ -31,16 +32,13 @@ def dfs(i, j):
     return l
 
 visited = [[False]*c for _ in range(r)]
-i, j = start
-visited[i][j] = True
-land = dfs(i, j)
+land = dfs(*start)
 print(f"{land} ")
 for _ in range(u):
     i, j = (int(x)-1 for x in input().split())
     grid[i][j] = 1
     for x, y in valid_moves(i, j):
         if visited[x][y]:
-            visited[i][j] = True
             land += dfs(i, j)
             break
     print(f"{land} ")
