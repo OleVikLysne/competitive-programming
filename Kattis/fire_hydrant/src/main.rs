@@ -25,10 +25,10 @@ fn main() -> Result<(), ParseIntError> {
         let y = a - 1;
         leaks.push((x, y));
     }
+    let mut unreachable = Vec::new();
     for i in 0..h {
-        let ii = i as i16;
         let mut reachable = Vec::new();
-        let mut unreachable = Vec::new();
+        let ii = i as i16;
         let steps = (hi-ii).abs();
         for (x, y) in &leaks {
             let d = steps - (ii-x).abs()-y;
@@ -53,73 +53,32 @@ fn main() -> Result<(), ParseIntError> {
             let right = reachable.len() as u64;
             board[i][j] = board[i][j-1] + right*2;
             let steps = (ii-hi).abs() + ji;
-            while unreachable.len() > 0 {
-                let (x, y) = &unreachable[unreachable.len()-1];
-                let d = steps - manhattan_dist(&ii, &ji, x, y);
-                if d <= 0 { 
+            while let Some((x, y)) = unreachable.pop() {
+                let d = steps - manhattan_dist(&ii, &ji, &x, &y);
+                if d <= 0 {
+                    unreachable.push((x, y));
                     break 
                 }
                 board[i][j] += d as u64;
                 reachable.push(-y);
-                unreachable.pop();
             }
         }
+        unreachable.clear();
     }
-
-    for step in 1..wi+hi-1 {
-        for (x, y) in quarter_ring(step, hi-1, 0, &wi, &hi) {
-            let xu = x as usize;
-            let yu = y as usize;
-            let mut val = u64::MAX;
-            if valid(&(x+1), &y, &wi, &hi) {
-                val = val.min(board[xu + 1][yu]);
-            }
-            if valid(&x, &(y-1), &wi, &hi) {
-                val = val.min(board[xu][yu - 1]);
-            }
-            board[xu][yu] += val;
+    for i in (0..h-1).rev() {
+        board[i][0] += board[i+1][0];
+    }
+    for j in 1..w {
+        board[h-1][j] += board[h-1][j-1];
+    }
+    
+    for i in (0..h-1).rev() {
+        for j in 1..w {
+            board[i][j] += board[i+1][j].min(board[i][j-1])
         }
     }
     print!("{}", board[0][w-1]);
     Ok(())
-}
-
-
-fn quarter_ring(
-    mut step: i16,
-    mut x: i16,
-    mut y: i16,
-    wi: &i16,
-    hi: &i16
-) -> Vec<(i16, i16)> {
-    adjust(&mut step, &mut x, &mut y, wi);
-    let mut l = Vec::new();
-    for _ in 0..step {
-        if !valid(&x, &y, wi, hi) {
-            break
-        }
-        l.push((x, y));
-        x -= 1;
-        y -= 1;
-    }
-    if valid(&x, &y, wi, hi) {
-        l.push((x, y))
-    }
-    return l
-}
-
-fn valid(x: &i16, y: &i16, wi: &i16, hi: &i16) -> bool {
-    return !(x < &0 || x >= hi || y < &0 || y >= wi)
-}
-
-fn adjust(step: &mut i16, x: &mut i16, y: &mut i16, wi: &i16) {
-    *y += *step;
-    let y_dist = *y-wi+1;
-    if y_dist > 0 {
-        *step -= y_dist;
-        *y -= y_dist;
-        *x -= y_dist;
-    }
 }
 
 fn manhattan_dist(i: &i16, j: &i16, x: &i16, y:&i16) -> i16 {
