@@ -9,7 +9,7 @@ class SegmentTree:
             val = 0
 
         if pad:
-            self.n = 2**(len(array)-1).bit_length()
+            self.n = 2**((len(array)-1).bit_length())
             pad_amount = self.n - len(array)
             self.T = [val]*self.n + array + [val]*pad_amount
         else:
