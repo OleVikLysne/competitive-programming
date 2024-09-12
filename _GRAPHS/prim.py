@@ -1,7 +1,7 @@
 import heapq
 
 # prim without edge list (faster, one less element in the pq)
-def prim(g: list[tuple[int, int]]):
+def prim(g: list[list[tuple[int, int]]]):
     num_nodes = len(g)
     edges = [(x[1], x[0]) for x in g[0]]
     heapq.heapify(edges)
@@ -23,7 +23,7 @@ def prim(g: list[tuple[int, int]]):
     return tree_sum
 
 # prim with returned edge list
-def prim(g: list[tuple[int, int]]):
+def prim(g: list[list[tuple[int, int]]]):
     num_nodes = len(g)
     edges = [(x[1], 0, x[0]) for x in g[0]]
     heapq.heapify(edges)
