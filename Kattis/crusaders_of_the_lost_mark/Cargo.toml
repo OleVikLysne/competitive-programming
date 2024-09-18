@@ -1,0 +1,6 @@
+[package]
+name = "crusaders_of_the_lost_mark"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
