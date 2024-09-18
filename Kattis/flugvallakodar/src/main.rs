@@ -1,16 +1,14 @@
 use std::io::BufRead;
 
-const PRIMES: [u128; 26] = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101];
-
 struct Node {
-    mask: u128,
+    mask: u32,
     children: [Option<Box<Node>>; 26]
 }
 
 impl Node {
     fn new() -> Node {
         Node{
-            mask: 1,
+            mask: 0,
             children: Default::default()
         }
     }
@@ -29,15 +27,15 @@ fn main() -> Result<(), std::num::ParseIntError>{
         name.clear();
         let _ = handle.read_until(b'\n', &mut name);
         let mut char_occ: [u16; 26] = [0; 26];
-        let mut mask: u128 = 1;
+        let mut mask: u32 = 0;
         name.truncate(name.trim_ascii_end().len());
         for c in name.iter_mut() {
             *c -= 65;
             if *c > 26 {
                 *c -= 32
             }
-            if mask % PRIMES[*c as usize] != 0 {
-                mask *= PRIMES[*c as usize];
+            if mask & 1 << *c == 0 {
+                mask |= 1 << *c
             }
             char_occ[*c as usize] += 1;
         }
@@ -60,12 +58,12 @@ fn search(
     node: &mut Node,
     depth: u8,
     name: &[u8],
-    mask: &mut u128, 
+    mask: &mut u32, 
     char_occ: &mut [u16]
 ) -> Option<[u8; 3]> {
 
     if depth == 2 {
-        if node.mask % *mask == 0 {
+        if node.mask & *mask == *mask {
             return None
         }
     }
@@ -81,7 +79,7 @@ fn search(
         }
         visited[char] = true;
         if char_occ[char] == 0 {
-            *mask /= PRIMES[char]
+            *mask ^= 1 << char;
         }
         match node.children[char].as_mut() {
             Some(next_node) => {
@@ -100,7 +98,7 @@ fn search(
                 match search(j+1, next_node, depth+1, name, mask, char_occ) {
                     None => {},
                     Some(mut arr) => {
-                        node.mask *= PRIMES[char];
+                        node.mask |= 1 << char;
                         arr[depth as usize] = name[j];
                         return Some(arr)
                     }
