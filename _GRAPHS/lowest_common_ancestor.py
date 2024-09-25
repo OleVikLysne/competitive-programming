@@ -1,17 +1,23 @@
+
+"""
+    1-indexed lowest common ancestor implementation, using binary lifting
+"""
+
 anc_matrix: list[list[int]] = ...
 depth: list[int] = ...
 
-def anc(x, k):
+
+def anc(v, k):
     if k == 0:
-        return x
+        return v
     log_k = (k-1).bit_length()
     if k & (k-1) == 0:
-        return anc_matrix[log_k][x]
+        return anc_matrix[log_k][v]
 
-    for j in range(log_k-1, -1, -1):
-        if k >> j & 1:
-            x = anc_matrix[j][x]
-    return x
+    for i in range(log_k-1, -1, -1):
+        if k >> i & 1:
+            v = anc_matrix[i][v]
+    return v
 
 
 def lca(u, v):
@@ -27,5 +33,27 @@ def lca(u, v):
             u = anc_matrix[i][u]
             v = anc_matrix[i][v]
 
-    ancestor = anc_matrix[0][v]
-    return max(1, ancestor)
+    return anc_matrix[0][v]
+
+
+def build_anc_matrix(g: list[list[int]], n: int): # g has length n+1 because 1-indexed
+    log_n = (n-1).bit_length()
+    depth = [-1]*(n+1)
+    depth[1] = depth[0] = 0
+    anc_matrix = [[-1 for _ in range(n+1)] for _ in range(log_n)]
+    anc_matrix[0][1] = anc_matrix[0][0] = 0
+
+    stack = [1]
+    while stack:
+        v = stack.pop()
+        for u in g[v]:
+            if depth[u] == -1:
+                depth[u] = depth[v] + 1
+                anc_matrix[0][u] = v
+                stack.append(u)
+
+    for i in range(1, log_n):
+        for j in range(1, n+1):
+            anc_matrix[i][j] = anc_matrix[i-1][anc_matrix[i-1][j]]
+
+    return depth, anc_matrix
