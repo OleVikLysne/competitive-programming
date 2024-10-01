@@ -25,11 +25,9 @@ class Vector:
         return math.sqrt(sum(a**2 for a in self.coords))
     
     def normalize(self, in_place=True):
-        length = self.length
         if not in_place:
-            return self / length
-        for i in range(len(self.coords)):
-            self.coords[i] /= length
+            return self / self.length
+        self /= self.length
     
     def dot(self, other):
         return sum(a*b for a, b in zip(self.coords, other.coords))
@@ -99,16 +97,28 @@ class Vector:
         return self.__class__(*(-a for a in self.coords))
 
     def __imul__(self, other):
-        return self.__mul__(other)
+        if isinstance(other, Vector):
+            raise Exception("Not implemented")
+        for i in range(len(self.coords)):
+            self.coords[i] *= other
+        return self
 
     def __itruediv__(self, other):
-        return self.__truediv__(other)
+        if isinstance(other, Vector):
+            raise Exception("Not implemented")
+        for i in range(len(self.coords)):
+            self.coords[i] /= other
+        return self
 
     def __iadd__(self, other):
-        return self.__add__(other)
+        for i in range(len(self.coords)):
+            self.coords[i] += other.coords[i]
+        return self
 
     def __isub__(self, other):
-        return self.__sub__(other)
+        for i in range(len(self.coords)):
+            self.coords[i] -= other.coords[i]
+        return self
 
     def __radd__(self, other):
         return self.__add__(other)
