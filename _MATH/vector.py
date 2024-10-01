@@ -34,6 +34,14 @@ class Vector:
     def dot(self, other):
         return sum(a*b for a, b in zip(self.coords, other.coords))
     
+    def cross(self, other):
+        return self.x*other.y - self.y*other.x
+    
+    def orient(self, v1, v2):
+        v3 = v1 - self
+        v4 = v2 - self
+        return v3.cross(v4)
+
     def _rotate90(self):
         return self.__class__(-self.y, self.x)
     
