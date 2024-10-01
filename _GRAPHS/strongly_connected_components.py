@@ -8,26 +8,26 @@ def tarjan(g: list[list[int]]):
     n = len(g)
 
     on_stack = [False]*n
-    low_link = [-1]*n
+    lowest = [-1]*n
     index = [-1]*n
     idx = 0
     stack = []
     sccs = []
     def dfs(v):
-        nonlocal on_stack, low_link, index, idx, stack, sccs
-        low_link[v] = index[v] = idx
+        nonlocal on_stack, lowest, index, idx, stack, sccs
+        lowest[v] = index[v] = idx
         idx += 1
         stack.append(v)
         on_stack[v] = True
 
         for u in g[v]:
-            if low_link[u] == -1:
+            if lowest[u] == -1:
                 dfs(u)
-                low_link[v] = min(low_link[v], low_link[u])
+                lowest[v] = min(lowest[v], lowest[u])
             elif on_stack[u]:
-                low_link[v] = min(low_link[v], low_link[u])
+                lowest[v] = min(lowest[v], lowest[u])
         
-        if low_link[v] == index[v]:
+        if lowest[v] == index[v]:
             scc = []
             while True:
                 u = stack.pop()
