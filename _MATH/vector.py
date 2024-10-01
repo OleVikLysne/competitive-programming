@@ -39,9 +39,6 @@ class Vector:
         v3 = v1 - self
         v4 = v2 - self
         return v3.cross(v4)
-
-    def _rotate90(self):
-        return self.__class__(-self.y, self.x)
     
     def rotate(self, theta: float | int, radians=False):
         """
@@ -53,11 +50,11 @@ class Vector:
             raise Exception("Rotate is currently only implemented for 2D")
         if radians is False:
             if theta == 90:
-                return self._rotate90()
+                return self.__class__(-self.y, self.x)
             if theta == 180:
                 return -self
             if theta == 270:
-                return -self._rotate90()
+                return self.__class__(self.y, -self.x)
             theta = math.radians(theta)
 
 
