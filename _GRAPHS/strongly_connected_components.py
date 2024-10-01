@@ -80,3 +80,48 @@ def kosaraju(g: list[list[int]], rev_g: list[list[int]]):
             sccs.append(rev_dfs(v, v))
     
     return sccs
+
+
+
+
+
+def condense_graph(g: list[set[int]], sccs: list[list[int]]):
+    """
+        Condense the graph such that every SCC is represented by just one node.
+        "node_to_comp" provides a mapping from the original vertex index to its
+        "representative" node.
+
+        Modifies the graph in-place.
+    """
+    n = len(g)
+    node_to_comp = [x for x in range(n)]
+
+    for scc in sccs:
+        root = scc[0]
+        for v in scc:
+            node_to_comp[v] = root
+
+    # add all edges leaving the SCC as out-edges from component root
+    for ssc in sccs:
+        if len(ssc) == 1:
+            continue
+        root = node_to_comp[ssc[0]]
+        for v in ssc:
+            for u in g[v]:
+                if node_to_comp[u] != root and u != root:
+                    g[root].add(u)
+
+
+    # add edges entering the SCC as in-edges for the root
+    for i in range(n):
+        if node_to_comp[i] != i:
+            g[i].clear()
+            continue
+        for j in g[i].copy():
+            root = node_to_comp[j]
+            if root != j:
+                g[i].remove(j)
+            if root != i:
+                g[i].add(root)
+
+    return g, node_to_comp
