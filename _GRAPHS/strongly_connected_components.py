@@ -9,14 +9,14 @@ def tarjan(g: list[list[int]]):
 
     on_stack = [False]*n
     lowest = [-1]*n
-    index = [-1]*n
-    idx = 0
+    pre_order = [-1]*n
+    count = 0
     stack = []
     sccs = []
     def dfs(v):
-        nonlocal on_stack, lowest, index, idx, stack, sccs
-        lowest[v] = index[v] = idx
-        idx += 1
+        nonlocal count
+        lowest[v] = pre_order[v] = count
+        count += 1
         stack.append(v)
         on_stack[v] = True
 
@@ -27,7 +27,7 @@ def tarjan(g: list[list[int]]):
             elif on_stack[u]:
                 lowest[v] = min(lowest[v], lowest[u])
         
-        if lowest[v] == index[v]:
+        if lowest[v] == pre_order[v]:
             scc = []
             while True:
                 u = stack.pop()
@@ -38,7 +38,7 @@ def tarjan(g: list[list[int]]):
             sccs.append(scc)
     
     for v in range(n):
-        if index[v] == -1:
+        if pre_order[v] == -1:
             dfs(v)
     return sccs
 
@@ -88,40 +88,40 @@ def kosaraju(g: list[list[int]], rev_g: list[list[int]]):
 def condense_graph(g: list[set[int]], sccs: list[list[int]]):
     """
         Condense the graph such that every SCC is represented by just one node.
-        "node_to_comp" provides a mapping from the original vertex index to its
+        "node_to_rep" provides a mapping from the original vertex index to its
         "representative" node.
 
         Modifies the graph in-place.
     """
     n = len(g)
-    node_to_comp = [x for x in range(n)]
+    node_to_rep = [-1]*n
 
     for scc in sccs:
-        root = scc[0]
+        rep = scc[0]
         for v in scc:
-            node_to_comp[v] = root
+            node_to_rep[v] = rep
 
-    # add all edges leaving the SCC as out-edges from component root
-    for ssc in sccs:
-        if len(ssc) == 1:
+    # add all edges leaving the SCC as out-edges from component rep
+    for scc in sccs:
+        if len(scc) == 1:
             continue
-        root = node_to_comp[ssc[0]]
-        for v in ssc:
+        rep = node_to_rep[scc[0]]
+        for v in scc:
             for u in g[v]:
-                if node_to_comp[u] != root and u != root:
-                    g[root].add(u)
+                if node_to_rep[u] != rep and u != rep:
+                    g[rep].add(u)
 
 
-    # add edges entering the SCC as in-edges for the root
+    # add edges entering the SCC as in-edges for the rep
     for i in range(n):
-        if node_to_comp[i] != i:
+        if node_to_rep[i] != i:
             g[i].clear()
             continue
         for j in g[i].copy():
-            root = node_to_comp[j]
-            if root != j:
+            rep = node_to_rep[j]
+            if j != rep:
                 g[i].remove(j)
-            if root != i:
-                g[i].add(root)
+            if i != rep:
+                g[i].add(rep)
 
-    return g, node_to_comp
+    return g, node_to_rep

@@ -6,14 +6,13 @@ word_to_idx = {}
 
 inp_list = []
 for i in range(n):
-    inp = input().split()
-    word_to_idx[inp[0]] = i
+    word, _, *inp = input().split()
+    word_to_idx[word] = i
     inp_list.append(inp)
 
 for i in range(n):
-    inp = inp_list[i]
-    for k in range(2, len(inp)):
-        if (j := word_to_idx.get(inp[k])) is not None and j != i:
+    for word in inp_list[i]:
+        if (j := word_to_idx.get(word)) is not None and j != i:
             g[i].add(j)
 
 
@@ -22,13 +21,13 @@ def tarjan(g: list[list[int]]):
 
     on_stack = [False]*n
     lowest = [-1]*n
-    index = [-1]*n
+    pre_order = [-1]*n
     idx = 0
     stack = []
     sccs = []
     def dfs(v):
-        nonlocal on_stack, lowest, index, idx, stack, sccs
-        lowest[v] = index[v] = idx
+        nonlocal idx
+        lowest[v] = pre_order[v] = idx
         idx += 1
         stack.append(v)
         on_stack[v] = True
@@ -40,7 +39,7 @@ def tarjan(g: list[list[int]]):
             elif on_stack[u]:
                 lowest[v] = min(lowest[v], lowest[u])
         
-        if lowest[v] == index[v]:
+        if lowest[v] == pre_order[v]:
             scc = []
             while True:
                 u = stack.pop()
@@ -51,84 +50,70 @@ def tarjan(g: list[list[int]]):
             sccs.append(scc)
     
     for v in range(n):
-        if index[v] == -1:
+        if pre_order[v] == -1:
             dfs(v)
     return sccs
 
 
-sccs = tarjan(g)
-
 def condense_graph(g: list[set[int]], sccs: list[list[int]]):
+    """
+        Condense the graph such that every SCC is represented by just one node.
+        "node_to_rep" provides a mapping from the original vertex index to its
+        "representative" node.
+
+        Modifies the graph in-place.
+    """
     n = len(g)
-    node_to_comp = [x for x in range(n)]
+    node_to_rep = [-1]*n
 
     for scc in sccs:
-        root = scc[0]
+        rep = scc[0]
         for v in scc:
-            node_to_comp[v] = root
+            node_to_rep[v] = rep
 
-    # add all edges leaving the SCC as out-edges from component root
+    # add all edges leaving the SCC as out-edges from component rep
     for ssc in sccs:
         if len(ssc) == 1:
             continue
-        root = node_to_comp[ssc[0]]
+        rep = node_to_rep[ssc[0]]
         for v in ssc:
             for u in g[v]:
-                if node_to_comp[u] != root and u != root:
-                    g[root].add(u)
+                if node_to_rep[u] != rep and u != rep:
+                    g[rep].add(u)
 
 
-    # add edges entering the SCC as in-edges for the root
+    # add edges entering the SCC as in-edges for the rep
     for i in range(n):
-        if node_to_comp[i] != i:
+        if node_to_rep[i] != i:
             g[i].clear()
             continue
         for j in g[i].copy():
-            root = node_to_comp[j]
-            if root != j:
+            rep = node_to_rep[j]
+            if j != rep:
                 g[i].remove(j)
-            if root != i:
-                g[i].add(root)
+            if i != rep:
+                g[i].add(rep)
 
-    return g, node_to_comp
+    return g, node_to_rep
 
-g, node_to_comp = condense_graph(g, sccs)
+sccs = tarjan(g)
+g, node_to_rep = condense_graph(g, sccs)
 
-# identify roots
-roots = set(range(n))
-for i in range(n):
-    for j in g[i]:
-        roots.discard(j)
-
-def rev_top_sort(g: list[list[int]], roots: list[int]):
-    n = len(g)
-    topo_order = []
-    visited = [False]*n
-    def dfs(v):
-        if not visited[v]:
-            visited[v] = True
-            for u in g[v]:
-                dfs(u)
-            topo_order.append(v)
-    for root in roots:
-        dfs(root)
-
-    return topo_order
-
-rev_top_order = rev_top_sort(g, roots)
 descendants = [0]*n
 for i in range(n):
-    descendants[node_to_comp[i]] |= 1 << i
+    descendants[node_to_rep[i]] |= 1 << i
 
-for v in rev_top_order:
+
+visited = [False]*n
+def search(v):
+    visited[v] = True
     for u in g[v]:
+        if not visited[u]:
+            search(u)
         descendants[v] |= descendants[u]
 
-count = [-1]*n
-def get_count(i):
-    v = node_to_comp[i]
-    if count[v] == -1:
-        count[v] = descendants[v].bit_count()
-    return count[v]
+for v in range(n):
+    if not visited[v]:
+        search(v)
 
-print(*(get_count(i) for i in range(n)))
+print(*(descendants[node_to_rep[i]].bit_count() for i in range(n)))
