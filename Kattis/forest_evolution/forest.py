@@ -1,108 +1,264 @@
-from functools import cmp_to_key
 from sys import stdin
 
-def cross(v1, v2):
-    return v1[0]*v2[1] - v2[0]*v1[1]
+import math
 
-def orient(anchor, v1, v2):
-    foo = (v1[0]-anchor[0], v1[1]-anchor[1])
-    bar = (v2[0]-anchor[0], v2[1]-anchor[1])
-    return cross(foo, bar)
-
-def intersect(line1, line2):
-    (a,b), (c,d) = line1, line2
-    oa = orient(c,d,a)
-    ob = orient(c,d,b)
-    oc = orient(a,b,c)
-    od = orient(a,b,d)
-    if oa*ob < 0 and oc*od < 0:
-        x = (a[0]*ob-b[0]*oa)/(ob-oa)
-        y = (a[1]*ob-b[1]*oa)/(ob-oa)
-        return (x, y)
-    return False
+"""
+    Class for vector representation. NOT exhaustively tested (yet).
+"""
 
 
-def compare(p1, p2, anchor):
-    o = orient(anchor, p1, p2)
-    if o >= 0:
-        return 1
-    else:
-        return -1
+class Vector:
+    def __init__(self, *args):
+        self.coords: list[float | int] = list(args)
+
+    @property
+    def x(self) -> float | int:
+        return self.coords[0]
+
+    @property
+    def y(self) -> float | int:
+        return self.coords[1]
+
+    @property
+    def z(self) -> float | int:
+        return self.coords[2]
+
+    @property
+    def length(self) -> float:
+        return math.sqrt(sum(a**2 for a in self.coords))
+
+    def normalize(self, in_place=True):
+        if not in_place:
+            return self / self.length
+        self /= self.length
+
+    def dot(self, other) -> float | int:
+        return sum(a * b for a, b in zip(self.coords, other.coords))
+
+    def cross(self, other) -> float | int:
+        return self.x * other.y - self.y * other.x
+
+    def angle(self, other, radians=False) -> float:
+        res = math.acos(
+            self.normalize(in_place=False).dot(other.normalize(in_place=False))
+        )
+        if not radians:
+            return math.degrees(res)
+        return res
+
+    def polar_angle(self, radians=False):
+        ang = self.angle(Vector(1, 0))
+        if self.y < 0:
+            ang = 360 - ang
+        if radians:
+            return math.radians(ang)
+        return ang
+
+    def orient(self, v1, v2) -> float | int:
+        v3 = v1 - self
+        v4 = v2 - self
+        return v3.cross(v4)
+
+    def rotate(self, theta: float | int, radians=False):
+        """
+        theta is assumed to be a value between 0-360 with radians=False.
+        Otherwise, theta is assumed to be between 0 and 2*pi.
+        Rotates counter-clockwise.
+        """
+        if len(self.coords) != 2:
+            raise Exception("Rotate is currently only implemented for 2D")
+        if radians is False:
+            if theta == 90:
+                return self.__class__(-self.y, self.x)
+            if theta == 180:
+                return -self
+            if theta == 270:
+                return self.__class__(self.y, -self.x)
+            theta = math.radians(theta)
+
+        cos_theta = math.cos(theta)
+        sin_theta = math.sin(theta)
+        return self.__class__(
+            self.x * cos_theta - self.y * sin_theta,
+            self.x * sin_theta + self.y * cos_theta,
+        )
+
+    def dist(self, other) -> float:
+        return math.dist(self.coords, other.coords)
+
+    def squared_dist(self, other) -> float | int:
+        return (self.x - other.x) ** 2 + (self.y - other.y) ** 2
+
+    def __mul__(self, other):
+        if isinstance(other, Vector):
+            raise Exception("Not implemented")
+        elif isinstance(other, (int, float)):
+            return self.__class__(*(a * other for a in self.coords))
+
+    def __truediv__(self, other):
+        if isinstance(other, Vector):
+            raise Exception("Not implemented")
+        elif isinstance(other, (int, float)):
+            return self.__class__(*(a / other for a in self.coords))
+
+    def __add__(self, other):
+        if not isinstance(other, Vector):
+            raise Exception()
+        return self.__class__(*(a + b for a, b in zip(self.coords, other.coords)))
+
+    def __sub__(self, other):
+        if not isinstance(other, Vector):
+            raise Exception()
+        return self.__class__(*(a - b for a, b in zip(self.coords, other.coords)))
+
+    def __neg__(self):
+        return self.__class__(*(-a for a in self.coords))
+
+    def __imul__(self, other):
+        if isinstance(other, Vector):
+            raise Exception("Not implemented")
+        for i in range(len(self.coords)):
+            self.coords[i] *= other
+        return self
+
+    def __itruediv__(self, other):
+        if isinstance(other, Vector):
+            raise Exception("Not implemented")
+        for i in range(len(self.coords)):
+            self.coords[i] /= other
+        return self
+
+    def __iadd__(self, other):
+        for i in range(len(self.coords)):
+            self.coords[i] += other.coords[i]
+        return self
+
+    def __isub__(self, other):
+        for i in range(len(self.coords)):
+            self.coords[i] -= other.coords[i]
+        return self
+
+    def __radd__(self, other):
+        return self.__add__(other)
+
+    def __rsub__(self, other):
+        return self.__sub__(other)
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def __iter__(self):
+        return iter(self.coords)
+
+    def __eq__(self, other):
+        if isinstance(other, Vector):
+            return self.coords == other.coords
+        return False
+
+    def __repr__(self):
+        return str(self.coords)
+
+    def copy(self):
+        return self.__class__(*self.coords)
 
 
-def graham_scan(points: list):
+def intersect(line1: tuple[Vector], line2: tuple[Vector]):
+    (a, b), (c, d) = line1, line2
+    oa = c.orient(d, a)
+    ob = c.orient(d, b)
+    oc = a.orient(b, c)
+    od = a.orient(b, d)
+    if oa * ob < 0 and oc * od < 0:
+        x = (a.x * ob - b.x * oa) / (ob - oa)
+        y = (a.y * ob - b.y * oa) / (ob - oa)
+        return Vector(x, y)
+    return None
+
+
+def graham_scan(points: list[Vector]):
+    if len(points) <= 2:
+        return [x for x in points]
     anchor = points[0]
     anchor_idx = 0
-    n = len(points)
     for i in range(1, len(points)):
-        y = points[i][1]
-        if y < anchor[1] or (y == anchor[1] and points[i][0] < anchor[0]):
-            anchor = points[i]
+        p = points[i]
+        if p.y < anchor.y or (p.y == anchor.y and p.x < anchor.x):
+            anchor = p
             anchor_idx = i
 
-    points[n-1], points[anchor_idx] = points[anchor_idx], points[n-1]
+    points[-1], points[anchor_idx] = points[anchor_idx], points[-1]
     points.pop()
-    points.sort(key=cmp_to_key(lambda p1, p2: compare(p1, p2, anchor)))
+    points.sort(key=lambda x: (x - anchor).polar_angle())
 
     hull = [anchor]
     for p in points:
-        while len(hull) > 1 and orient(hull[-2], hull[-1], p) >= 0:
+        while len(hull) > 1 and hull[-2].orient(hull[-1], p) <= 0:
             hull.pop()
         hull.append(p)
 
     return hull
 
-def shoelace(arr):
+
+def shoelace(arr: list[Vector]):
     left, right = 0, 0
     n = len(arr)
-    for i in range(len(arr)):
-        left += arr[i][0]*arr[(i+1)%n][1]
-        right += arr[i][1]*arr[(i+1)%n][0]
-    return abs(left-right)/2
+    for i in range(n):
+        j = (i + 1) % n
+        left += arr[i].x * arr[j].y
+        right += arr[i].y * arr[j].x
+    return abs(left - right) / 2
 
 
-def pn_poly(poly, p):
-    x, y = p
+def point_in_polygon(poly: list[Vector], p: Vector):
     inside = False
+    x, y = p.x, p.y
     for i in range(len(poly)):
         j = (i+1) % len(poly)
-        i_x, i_y = poly[i]
-        j_x, j_y = poly[j]
+        #line1 = (Vector(10**9+7, 1), p)
+        # line2 = (poly[i], poly[j])
+        # if intersect(line1, line2) is not None:
+        #     inside = not inside
+        i_x, i_y = poly[i].x, poly[i].y
+        j_x, j_y = poly[j].x, poly[j].y
         if (i_y > y) != (j_y > y) and x < (j_x-i_x) * (y-i_y) / (j_y-i_y) + i_x:
             inside = not inside
     return inside
 
 
-def get_inside(poly1, poly2):
-    new = []
-    for i in range(len(poly1)):
-        if pn_poly(poly2, poly1[i]):
-            new.append(poly1[i])
-    return new
+def polygon_intersect(poly1: list[Vector], poly2: list[Vector]):
+    def get_inside(poly1, poly2):
+        for i in range(len(poly1)):
+            if point_in_polygon(poly2, poly1[i]):
+                yield poly1[i]
 
-def foo(poly1, poly2):
-    new = get_inside(poly1, poly2)
-    new.extend(get_inside(poly2, poly1))
+    # all points in p1 that are inside p2
+    points = list(get_inside(poly1, poly2))
+    # all points in p2 that are inside p1
+    points.extend(get_inside(poly2, poly1))
+
+
+    # include all the intersection points
     for i in range(len(poly1)):
-        line = (poly1[i], poly1[(i+1)%len(poly1)])
+        line1 = (poly1[i], poly1[(i + 1) % len(poly1)])
+
         for j in range(len(poly2)):
-            line2 = (poly2[j], poly2[(j+1)%len(poly2)])
-            inter = intersect(line, line2)
+            line2 = (poly2[j], poly2[(j + 1) % len(poly2)])
+            inter = intersect(line1, line2)
             if inter:
-                new.append(inter)
-    return new
+                points.append(inter)
+
+    # and finally, compute the convex hull to get the polygon itself
+    return graham_scan(points)
+
 
 p, a = map(int, stdin.readline().split())
 if p == 0 or a == 0:
     print(0)
     exit()
-pines = [tuple(map(float, stdin.readline().split())) for _ in range(p)]
-aspens = [tuple(map(float, stdin.readline().split())) for _ in range(a)]
-pines  = graham_scan(pines)
+
+pines = [Vector(*map(float, stdin.readline().split())) for _ in range(p)]
+aspens = [Vector(*map(float, stdin.readline().split())) for _ in range(a)]
+pines = graham_scan(pines)
 aspens = graham_scan(aspens)
-intersecting_poly = foo(pines, aspens)
-if len(intersecting_poly) <= 2:
-    print(0)
-else:
-    intersecting_poly = graham_scan(intersecting_poly)
-    print(shoelace(intersecting_poly))
+intersecting_poly = polygon_intersect(pines, aspens)
+print(shoelace(intersecting_poly))

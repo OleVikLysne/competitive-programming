@@ -44,7 +44,7 @@ class Vector:
             return math.degrees(res)
         return res
 
-    def polar_angle(self, radians=False):
+    def polar_angle(self, radians=False) -> float:
         ang = self.angle(Vector(1, 0))
         if self.y < 0:
             ang = 360 - ang
@@ -168,20 +168,15 @@ class Vector:
 # line intersect
 def intersect(line1: tuple[Vector], line2: tuple[Vector]):
     (a, b), (c, d) = line1, line2
-    for p1 in (a, b):
-        for p2 in (c, d):
-            if p1 == p2:
-                return p1.copy()
-
     oa = c.orient(d, a)
     ob = c.orient(d, b)
     oc = a.orient(b, c)
     od = a.orient(b, d)
-    if oa*ob < 0 and oc*od < 0:
-        x = (a.x*ob-b.x*oa)/(ob-oa)
-        y = (a.y*ob-b.y*oa)/(ob-oa)
+    if oa * ob < 0 and oc * od < 0:
+        x = (a.x * ob - b.x * oa) / (ob - oa)
+        y = (a.y * ob - b.y * oa) / (ob - oa)
         return Vector(x, y)
-    return False
+    return None
 
 
 
@@ -223,10 +218,14 @@ def shoelace(arr: list[Vector]):
 
 
 def point_in_polygon(poly: list[Vector], p: Vector):
-    x, y = p.x, p.y
     inside = False
+    x, y = p.x, p.y
     for i in range(len(poly)):
         j = (i+1) % len(poly)
+        #line1 = (Vector(10**9+7, 1), p)
+        # line2 = (poly[i], poly[j])
+        # if intersect(line1, line2) is not None:
+        #     inside = not inside
         i_x, i_y = poly[i].x, poly[i].y
         j_x, j_y = poly[j].x, poly[j].y
         if (i_y > y) != (j_y > y) and x < (j_x-i_x) * (y-i_y) / (j_y-i_y) + i_x:
