@@ -187,6 +187,8 @@ def intersect(line1: tuple[Vector], line2: tuple[Vector]):
 
 # Convex hull
 def graham_scan(points: list[Vector]):
+    if len(points) <= 2:
+        return [x for x in points]
     anchor = points[0]
     anchor_idx = 0
     for i in range(1, len(points)):
@@ -211,9 +213,49 @@ def graham_scan(points: list[Vector]):
 # Area of polygon
 def shoelace(arr: list[Vector]):
     left, right = 0, 0
-    for i in range(len(arr) - 1):
-        left += arr[i].x * arr[i + 1].y
-        right += arr[i].y * arr[i + 1].x
-    left += arr[-1].x * arr[0].y
-    right += arr[-1].y * arr[0].x
+    n = len(arr)
+    for i in range(n):
+        j = (i + 1) % n
+        left += arr[i].x * arr[j].y
+        right += arr[i].y * arr[j].x
     return abs(left - right) / 2
+
+
+
+def point_in_polygon(poly: list[Vector], p: Vector):
+    x, y = p.x, p.y
+    inside = False
+    for i in range(len(poly)):
+        j = (i+1) % len(poly)
+        i_x, i_y = poly[i].x, poly[i].y
+        j_x, j_y = poly[j].x, poly[j].y
+        if (i_y > y) != (j_y > y) and x < (j_x-i_x) * (y-i_y) / (j_y-i_y) + i_x:
+            inside = not inside
+    return inside
+
+
+
+def polygon_intersect(poly1: list[Vector], poly2: list[Vector]):
+    def get_inside(poly1, poly2):
+        for i in range(len(poly1)):
+            if point_in_polygon(poly2, poly1[i]):
+                yield poly1[i]
+
+    # all points in p1 that are inside p2
+    points = list(get_inside(poly1, poly2))
+    # all points in p2 that are inside p1
+    points.extend(get_inside(poly2, poly1))
+
+
+    # include all the intersection points
+    for i in range(len(poly1)):
+        line1 = (poly1[i], poly1[(i + 1) % len(poly1)])
+
+        for j in range(len(poly2)):
+            line2 = (poly2[j], poly2[(j + 1) % len(poly2)])
+            inter = intersect(line1, line2)
+            if inter:
+                points.append(inter)
+
+    # and finally, compute the convex hull to get the polygon itself
+    return graham_scan(points)
