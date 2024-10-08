@@ -1,3 +1,5 @@
+// only tested with max queries
+
 struct SegmentTree<T> {
     tree: Vec<T>,
     n: usize,
@@ -58,41 +60,4 @@ impl<T> SegmentTree<T>
         }
         return res
     }
-}
-
-fn main() -> Result<(), std::num::ParseIntError> {
-    let stdin = std::io::stdin();
-    let mut buf = String::new();
-    let _ = stdin.read_line(&mut buf);
-    let mut nk = buf.split_ascii_whitespace();
-    let n: usize = nk.next().unwrap().parse()?;
-    let k: usize = nk.next().unwrap().parse()?;
-    buf.clear();
-    let _ = stdin.read_line(&mut buf);
-    let arr1: Vec<u32> = buf.split_ascii_whitespace().map(|x| x.parse::<u32>().unwrap()-1).collect();
-    
-    let mut m = vec![Vec::new(); n];
-    for i in (0..n*k).rev() {
-        m[arr1[i] as usize].push(i as u32);
-    }
-    
-    let base = vec![0; n*k];
-    let mut tree = SegmentTree::new(&base, std::cmp::max);
-    buf.clear();
-
-    let _ = stdin.read_line(&mut buf);
-    for x in buf.split_ascii_whitespace().map(|x| x.parse::<usize>().unwrap()-1) {
-        for i in m[x].iter().map(|x| *x as usize) {
-            let v = {
-                if i == 0 {
-                    0
-                } else {
-                    tree.query(0, i-1)
-                }
-            };
-            tree.update(i, v+1);
-        }
-    }
-    println!("{}", tree.tree[1]);
-    Ok(())
 }
