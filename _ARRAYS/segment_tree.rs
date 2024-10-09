@@ -1,4 +1,4 @@
-// only tested with max queries
+// tested with max and sum queries
 
 struct SegmentTree<T> {
     tree: Vec<T>,
@@ -9,13 +9,12 @@ struct SegmentTree<T> {
 impl<T> SegmentTree<T> 
     where
     T: Clone + Copy + Default + Eq,
-    {
+{
     fn new(arr: &[T], op: fn(T, T) -> T) -> Self {
         let n = arr.len();
-        let mut tree = vec![T::default(); 2*n];
-        for i in 0..n {
-            tree[i+n] = arr[i];
-        }
+        let mut tree = Vec::with_capacity(2*n);
+        tree.extend(std::iter::repeat(T::default()).take(n));
+        tree.extend(arr);
 
         for i in (1..n).rev() {
             tree[i] = op(tree[i*2], tree[i*2+1]);
