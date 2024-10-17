@@ -10,60 +10,49 @@ class SegmentTree:
         else:
             val = 0
         if pad:
-            self.n = 2**(len(array)-1).bit_length()
+            self.n = 2**((len(array)-1).bit_length())
             pad_amount = self.n - len(array)
-            self.T = [val]*self.n + array + [val]*pad_amount
+            self.T: list = [val]*self.n
+            self.T.extend(array)
+            self.T.extend(val for _ in range(pad_amount))
         else:
             self.n = len(array)
-            self.T = [val]*self.n + array
+            self.T: list = [val]*self.n
+            self.T.extend(array)
+
         for i in range(self.n-1, 0, -1):
             self.T[i] = self.op(
-                self.T[self.left(i)],
-                self.T[self.right(i)]
+                self.T[2*i],
+                self.T[2*i+1]
             )
-    
-    
-    def is_leaf(self, i):
-        return i >= self.n
-    
-    def index(self, i):
-        return self.n + i
-    
-    def parent(self, i):
-        return i >> 1
-    
-    def left(self, i):
-        return 2 * i
-
-    def right(self, i):
-        return 2 * i + 1
 
     def update(self, i, val):
         self.T[i] = val
-        while (i := self.parent(i)) > 0:
+        while i > 1:
+            i >>= 1
             self.T[i] = self.op(
-                self.T[self.left(i)],
-                self.T[self.right(i)]
+                self.T[2*i],
+                self.T[2*i+1]
             )
 
     def strictly_harder(self, val):
         i = 1
-        while not self.is_leaf(i):
-            k = self.left(i)
+        while i < self.n:
+            k = 2*i
             if self.T[k] > val:
                 i = k
             else:
-                i = self.right(i)
+                i = 2*i+1
         return i
 
     def not_harder(self, val):
         i = 1
-        while not self.is_leaf(i):
-            k = self.right(i)
+        while i < self.n:
+            k = 2*i+1
             if self.T[k] <= val:
                 i = k
             else:
-                i = self.left(i)
+                i *= 2
         return i
 
 

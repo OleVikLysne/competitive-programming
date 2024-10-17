@@ -13,10 +13,13 @@ class SegmentTree:
         if pad:
             self.n = 2**((len(array)-1).bit_length())
             pad_amount = self.n - len(array)
-            self.T = [val]*self.n + array + [val]*pad_amount
+            self.T: list = [val]*self.n
+            self.T.extend(array)
+            self.T.extend(val for _ in range(pad_amount))
         else:
             self.n = len(array)
-            self.T = [val]*self.n + array
+            self.T: list = [val]*self.n
+            self.T.extend(array)
 
         for i in range(self.n-1, 0, -1):
             self.T[i] = self.op(
