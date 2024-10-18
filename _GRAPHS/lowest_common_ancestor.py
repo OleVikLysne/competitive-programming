@@ -36,14 +36,14 @@ def lca(u, v):
     return anc_matrix[0][v]
 
 
-def build_anc_matrix(g: list[list[int]], n: int): # g has length n+1 because 1-indexed
+def build_anc_matrix(g: list[list[int]]):
+    n = len(g)
     log_n = (n-1).bit_length()
-    depth = [-1]*(n+1)
-    depth[1] = depth[0] = 0
-    anc_matrix = [[-1 for _ in range(n+1)] for _ in range(log_n)]
-    anc_matrix[0][1] = anc_matrix[0][0] = 0
+    depth = [-1]*n
+    depth[0] = 0
+    anc_matrix = [[0]*n for _ in range(log_n)]
 
-    stack = [1]
+    stack = [0]
     while stack:
         v = stack.pop()
         for u in g[v]:
@@ -53,7 +53,7 @@ def build_anc_matrix(g: list[list[int]], n: int): # g has length n+1 because 1-i
                 stack.append(u)
 
     for i in range(1, log_n):
-        for j in range(1, n+1):
+        for j in range(1, n):
             anc_matrix[i][j] = anc_matrix[i-1][anc_matrix[i-1][j]]
 
     return depth, anc_matrix

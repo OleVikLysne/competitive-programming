@@ -1,4 +1,4 @@
-from sys import stdin, stdout
+import sys; input=sys.stdin.readline
 
 
 
@@ -31,14 +31,14 @@ def lca(u, v):
     return anc_matrix[0][v]
 
 
-def build_anc_matrix(g: list[list[int]], n: int): # g has length n+1 because 1-indexed
+def build_anc_matrix(g: list[list[int]]):
+    n = len(g)
     log_n = (n-1).bit_length()
-    depth = [-1]*(n+1)
-    depth[1] = depth[0] = 0
-    anc_matrix = [[-1 for _ in range(n+1)] for _ in range(log_n)]
-    anc_matrix[0][1] = anc_matrix[0][0] = 0
+    depth = [-1]*n
+    depth[0] = 0
+    anc_matrix = [[0]*n for _ in range(log_n)]
 
-    stack = [1]
+    stack = [0]
     while stack:
         v = stack.pop()
         for u in g[v]:
@@ -48,7 +48,7 @@ def build_anc_matrix(g: list[list[int]], n: int): # g has length n+1 because 1-i
                 stack.append(u)
 
     for i in range(1, log_n):
-        for j in range(1, n+1):
+        for j in range(1, n):
             anc_matrix[i][j] = anc_matrix[i-1][anc_matrix[i-1][j]]
 
     return depth, anc_matrix
@@ -60,18 +60,17 @@ def lca_path_search(u, v):
     return (depth[u] - depth[w]) + (depth[v] - depth[w]) + 1
 
 
-n = int(stdin.readline())
-g = [[] for _ in range(n+1)]
+n = int(input())
+g = [[] for _ in range(n)]
 for _ in range(n-1):
-    i, j = map(int, stdin.readline().split())
+    i, j = (int(x)-1 for x in input().split())
     g[i].append(j)
     g[j].append(i)
 
-depth, anc_matrix = build_anc_matrix(g, n)
+depth, anc_matrix = build_anc_matrix(g)
 
-depth[0] = 0
 s = sum(depth) + n-1
 for i in range(2, n//2 + 1):
     for j in range(i*2, n+1, i):
-        s += lca_path_search(i, j)
-stdout.write(str(s))
+        s += lca_path_search(i-1, j-1)
+print(s)
