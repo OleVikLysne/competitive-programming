@@ -1,13 +1,13 @@
 
 """
-    1-indexed lowest common ancestor implementation, using binary lifting
+    lowest common ancestor implementation using binary lifting
 """
 
 anc_matrix: list[list[int]] = ...
 depth: list[int] = ...
 
 
-def anc(v, k):
+def anc(v: int, k: int):
     if k == 0:
         return v
     log_k = (k-1).bit_length()
@@ -20,15 +20,15 @@ def anc(v, k):
     return v
 
 
-def lca(u, v):
+def lca(u: int, v: int):
     if depth[v] > depth[u]:
         u, v = v, u
     u = anc(u, depth[u]-depth[v])
     if u == v:
         return v
 
-    log_n = (depth[v]-1).bit_length()
-    for i in range(log_n-1, -1, -1):
+    log_d = (depth[v]-1).bit_length()
+    for i in range(log_d-1, -1, -1):
         if anc_matrix[i][u] != anc_matrix[i][v]:
             u = anc_matrix[i][u]
             v = anc_matrix[i][v]
