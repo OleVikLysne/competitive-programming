@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::fmt::Display;
 
 struct IO {
     buf: String,
@@ -107,81 +107,18 @@ impl IO {
             res
         }
     }
+
+    fn print_vec<T>(&self, vec: &Vec<T>) 
+        where 
+        T: Display
+    {
+        for x in vec {
+            print!("{} ", *x);
+        }
+    }
 }
 
-fn main() -> Result<(), std::num::ParseIntError> {
+
+fn main() {
     let mut io = IO::new();
-    let n = io.r();
-    let mut arr: Vec<u32> = Vec::new();
-    for _ in 0..n {
-        arr.push(io.r());
-    }
-
-    let mut start = vec![0];
-    for i in 1..n {
-        if arr[i] >= arr[start[0]] {
-            if arr[i] > arr[start[0]] {
-                start.clear();
-            }
-            start.push(i);
-        } 
-    }
-
-    let mut res = vec![-1; n];
-    let mut m = vec![vec![usize::MAX; 2]; n];
-    for i in (0..n).rev() {
-        for j in i+1..n {
-            if arr[j] > arr[i] {
-                m[i][0] = j;
-                break
-            }
-            let k = m[j][0];
-            if k == usize::MAX || arr[k] > arr[i] {
-                m[i][0] = k;
-                break
-            }
-
-        }
-    }
-    
-    for i in 0..n {
-        for j in (0..i).rev() {
-            if arr[j] > arr[i] {
-                m[i][1] = j;
-                break
-            }
-            let k = m[j][1];
-            if k == usize::MAX || arr[k] > arr[i] {
-                m[i][1] = k;
-                break
-            }
-
-        }
-    }
-
-    let mut rev_m = vec![Vec::new(); n];
-    for i in 0..n {
-        for j in &m[i] {
-            if *j != usize::MAX {
-                rev_m[*j].push(i);
-            }
-        }
-    }
-    let mut q = VecDeque::new();
-    for i in start.iter() {
-        res[*i] = 0;
-        q.push_back((*i, 0))
-    }
-    while let Some((i, c)) = q.pop_front() {
-        for j in rev_m[i].iter() {
-            if res[*j] == -1 {
-                res[*j] = c+1;
-                q.push_back((*j, c+1));
-            }
-        }
-    }
-    for x in res {
-        print!("{} ", x);
-    }
-    Ok(())
 }
