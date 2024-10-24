@@ -8,22 +8,27 @@ struct IO {
 #[allow(dead_code)]
 impl IO {
     fn new() -> Self {
-        let buf = String::new();
-        let stdin = std::io::stdin();
-        IO { buf, stdin }
+        IO {
+            buf: String::new(),
+            stdin: std::io::stdin(),
+        }
     }
 
-    fn r<T>(&mut self) -> T
-    where
-        T: std::str::FromStr,
-    {
+    fn parse<T: std::str::FromStr>(&self, s: &str) -> T {
+        unsafe { s.parse::<T>().unwrap_unchecked() }
+    }
+
+    fn parse_next<T: std::str::FromStr>(&self, foo: &mut std::str::SplitAsciiWhitespace) -> T {
+        unsafe { self.parse(foo.next().unwrap_unchecked()) }
+    }
+
+    fn r<T: std::str::FromStr>(&mut self) -> T {
         let _ = self.stdin.read_line(&mut self.buf);
-        let res = unsafe {self.buf.trim().parse::<T>().unwrap_unchecked() };
+        let res = self.parse(self.buf.trim());
         self.buf.clear();
         res
     }
 
-    
     fn r2<T1, T2>(&mut self) -> (T1, T2)
     where
         T1: std::str::FromStr,
@@ -31,12 +36,10 @@ impl IO {
     {
         let _ = self.stdin.read_line(&mut self.buf);
         let mut foo = self.buf.split_ascii_whitespace();
-        unsafe {
-            let a = foo.next().unwrap_unchecked().parse::<T1>().unwrap_unchecked();
-            let b = foo.next().unwrap_unchecked().parse::<T2>().unwrap_unchecked();
-            self.buf.clear();
-            (a, b)
-        }
+        let a = self.parse_next(&mut foo);
+        let b = self.parse_next(&mut foo);
+        self.buf.clear();
+        (a, b)
     }
 
     fn r3<T1, T2, T3>(&mut self) -> (T1, T2, T3)
@@ -47,13 +50,11 @@ impl IO {
     {
         let _ = self.stdin.read_line(&mut self.buf);
         let mut foo = self.buf.split_ascii_whitespace();
-        unsafe {
-            let a = foo.next().unwrap_unchecked().parse::<T1>().unwrap_unchecked();
-            let b = foo.next().unwrap_unchecked().parse::<T2>().unwrap_unchecked();
-            let c = foo.next().unwrap_unchecked().parse::<T3>().unwrap_unchecked();
-            self.buf.clear();
-            (a, b, c)
-        }
+        let a = self.parse_next(&mut foo);
+        let b = self.parse_next(&mut foo);
+        let c = self.parse_next(&mut foo);
+        self.buf.clear();
+        (a, b, c)
     }
 
     fn r4<T1, T2, T3, T4>(&mut self) -> (T1, T2, T3, T4)
@@ -65,14 +66,12 @@ impl IO {
     {
         let _ = self.stdin.read_line(&mut self.buf);
         let mut foo = self.buf.split_ascii_whitespace();
-        unsafe {
-            let a = foo.next().unwrap_unchecked().parse::<T1>().unwrap_unchecked();
-            let b = foo.next().unwrap_unchecked().parse::<T2>().unwrap_unchecked();
-            let c = foo.next().unwrap_unchecked().parse::<T3>().unwrap_unchecked();
-            let d = foo.next().unwrap_unchecked().parse::<T4>().unwrap_unchecked();
-            self.buf.clear();
-            (a, b, c, d)
-        }
+        let a = self.parse_next(&mut foo);
+        let b = self.parse_next(&mut foo);
+        let c = self.parse_next(&mut foo);
+        let d = self.parse_next(&mut foo);
+        self.buf.clear();
+        (a, b, c, d)
     }
 
     fn r5<T1, T2, T3, T4, T5>(&mut self) -> (T1, T2, T3, T4, T5)
@@ -85,39 +84,32 @@ impl IO {
     {
         let _ = self.stdin.read_line(&mut self.buf);
         let mut foo = self.buf.split_ascii_whitespace();
-        unsafe {
-            let a = foo.next().unwrap_unchecked().parse::<T1>().unwrap_unchecked();
-            let b = foo.next().unwrap_unchecked().parse::<T2>().unwrap_unchecked();
-            let c = foo.next().unwrap_unchecked().parse::<T3>().unwrap_unchecked();
-            let d = foo.next().unwrap_unchecked().parse::<T4>().unwrap_unchecked();
-            let e = foo.next().unwrap_unchecked().parse::<T5>().unwrap_unchecked();
-            self.buf.clear();
-            (a, b, c, d, e)
-        }
+        let a = self.parse_next(&mut foo);
+        let b = self.parse_next(&mut foo);
+        let c = self.parse_next(&mut foo);
+        let d = self.parse_next(&mut foo);
+        let e = self.parse_next(&mut foo);
+        self.buf.clear();
+        (a, b, c, d, e)
     }
 
-    fn vec<T>(&mut self) -> Vec<T> 
-        where
-        T: std::str::FromStr,
-    {
+    fn vec<T: std::str::FromStr>(&mut self) -> Vec<T> {
         let _ = self.stdin.read_line(&mut self.buf);
-        unsafe {
-            let res = self.buf.split_ascii_whitespace().map(|x| x.parse::<T>().unwrap_unchecked()).collect();
-            self.buf.clear();
-            res
-        }
+        let res = self
+            .buf
+            .split_ascii_whitespace()
+            .map(|x| self.parse(x))
+            .collect();
+        self.buf.clear();
+        res
     }
 
-    fn print_vec<T>(&self, vec: &Vec<T>) 
-        where 
-        T: Display
-    {
+    fn print_vec<T: Display>(&self, vec: &Vec<T>) {
         for x in vec {
             print!("{} ", *x);
         }
     }
 }
-
 
 fn main() {
     let mut io = IO::new();
