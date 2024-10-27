@@ -1,6 +1,6 @@
 
-B = 2**31-1
-A = 31 # cool prime number
+B = 2**31-1 # 2**61-1 # 10**9+7
+A = 31
 
 def rolling_hash(string):
     hashed_str = 0
