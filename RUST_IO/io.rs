@@ -18,15 +18,14 @@ impl IO {
         unsafe { s.parse::<T>().unwrap_unchecked() }
     }
 
-    fn parse_next<T: std::str::FromStr>(&self, foo: &mut std::str::SplitAsciiWhitespace) -> T {
-        unsafe { self.parse(foo.next().unwrap_unchecked()) }
+    fn parse_next<T: std::str::FromStr>(&self, line_split: &mut std::str::SplitAsciiWhitespace) -> T {
+        unsafe { self.parse(line_split.next().unwrap_unchecked()) }
     }
 
     fn r<T: std::str::FromStr>(&mut self) -> T {
-        let _ = self.stdin.read_line(&mut self.buf);
-        let res = self.parse(self.buf.trim());
         self.buf.clear();
-        res
+        let _ = self.stdin.read_line(&mut self.buf);
+        self.parse(self.buf.trim())
     }
 
     fn r2<T1, T2>(&mut self) -> (T1, T2)
@@ -34,12 +33,10 @@ impl IO {
         T1: std::str::FromStr,
         T2: std::str::FromStr,
     {
-        let _ = self.stdin.read_line(&mut self.buf);
-        let mut foo = self.buf.split_ascii_whitespace();
-        let a = self.parse_next(&mut foo);
-        let b = self.parse_next(&mut foo);
         self.buf.clear();
-        (a, b)
+        let _ = self.stdin.read_line(&mut self.buf);
+        let mut line_split = self.buf.split_ascii_whitespace();
+        (self.parse_next(&mut line_split), self.parse_next(&mut line_split))
     }
 
     fn r3<T1, T2, T3>(&mut self) -> (T1, T2, T3)
@@ -48,13 +45,14 @@ impl IO {
         T2: std::str::FromStr,
         T3: std::str::FromStr,
     {
-        let _ = self.stdin.read_line(&mut self.buf);
-        let mut foo = self.buf.split_ascii_whitespace();
-        let a = self.parse_next(&mut foo);
-        let b = self.parse_next(&mut foo);
-        let c = self.parse_next(&mut foo);
         self.buf.clear();
-        (a, b, c)
+        let _ = self.stdin.read_line(&mut self.buf);
+        let mut line_split = self.buf.split_ascii_whitespace();
+        (
+            self.parse_next(&mut line_split),
+            self.parse_next(&mut line_split),
+            self.parse_next(&mut line_split),
+        )
     }
 
     fn r4<T1, T2, T3, T4>(&mut self) -> (T1, T2, T3, T4)
@@ -64,14 +62,15 @@ impl IO {
         T3: std::str::FromStr,
         T4: std::str::FromStr,
     {
-        let _ = self.stdin.read_line(&mut self.buf);
-        let mut foo = self.buf.split_ascii_whitespace();
-        let a = self.parse_next(&mut foo);
-        let b = self.parse_next(&mut foo);
-        let c = self.parse_next(&mut foo);
-        let d = self.parse_next(&mut foo);
         self.buf.clear();
-        (a, b, c, d)
+        let _ = self.stdin.read_line(&mut self.buf);
+        let mut line_split = self.buf.split_ascii_whitespace();
+        (
+            self.parse_next(&mut line_split),
+            self.parse_next(&mut line_split),
+            self.parse_next(&mut line_split),
+            self.parse_next(&mut line_split),
+        )
     }
 
     fn r5<T1, T2, T3, T4, T5>(&mut self) -> (T1, T2, T3, T4, T5)
@@ -82,26 +81,26 @@ impl IO {
         T4: std::str::FromStr,
         T5: std::str::FromStr,
     {
-        let _ = self.stdin.read_line(&mut self.buf);
-        let mut foo = self.buf.split_ascii_whitespace();
-        let a = self.parse_next(&mut foo);
-        let b = self.parse_next(&mut foo);
-        let c = self.parse_next(&mut foo);
-        let d = self.parse_next(&mut foo);
-        let e = self.parse_next(&mut foo);
         self.buf.clear();
-        (a, b, c, d, e)
+        let _ = self.stdin.read_line(&mut self.buf);
+        let mut line_split = self.buf.split_ascii_whitespace();
+        (
+            self.parse_next(&mut line_split),
+            self.parse_next(&mut line_split),
+            self.parse_next(&mut line_split),
+            self.parse_next(&mut line_split),
+            self.parse_next(&mut line_split),
+        )
     }
 
     fn vec<T: std::str::FromStr>(&mut self) -> Vec<T> {
+        self.buf.clear();
         let _ = self.stdin.read_line(&mut self.buf);
-        let res = self
+        return self
             .buf
             .split_ascii_whitespace()
             .map(|x| self.parse(x))
             .collect();
-        self.buf.clear();
-        res
     }
 
     fn print_vec<T: Display>(&self, vec: &Vec<T>) {
