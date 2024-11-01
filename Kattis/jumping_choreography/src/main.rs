@@ -125,21 +125,21 @@ impl IO {
 }
 
 struct FenwickTree<T> {
-    tree: Vec<T>,
+    tree: [T; MAX + 1],
     n: isize,
 }
 
 impl<T> FenwickTree<T>
 where
-T: Clone + Copy + Default + Eq + std::ops::AddAssign,
+    T: Clone + Copy + Default + Eq + std::ops::AddAssign,
 {
-    fn new(n: usize) -> Self {
+    fn new() -> Self {
         FenwickTree {
-            tree: vec![T::default(); n + 1],
-            n: n as isize,
+            tree: [T::default(); MAX + 1],
+            n: MAX as isize,
         }
     }
-    
+
     fn update(&mut self, i: usize, val: T) {
         let mut j = i as isize + 1;
         while j <= self.n {
@@ -147,7 +147,7 @@ T: Clone + Copy + Default + Eq + std::ops::AddAssign,
             j += j & -j
         }
     }
-    
+
     // [0, r]
     fn query(&self, r: usize) -> T {
         let mut r = r as isize + 1;
@@ -160,7 +160,7 @@ T: Clone + Copy + Default + Eq + std::ops::AddAssign,
     }
 }
 
-fn moves(n: i64, mut k: i64) -> i64 {
+fn moves(n: i32, mut k: i32) -> i32 {
     let mut sum_k = (k * (k + 1)) / 2;
     loop {
         if sum_k >= n && (sum_k - n) % 2 == 0 {
@@ -171,7 +171,7 @@ fn moves(n: i64, mut k: i64) -> i64 {
     }
 }
 
-fn update(pos: usize, tree: &mut FenwickTree<i64>, jump_arr: &Vec<(i64, usize)>, delta: i64) {
+fn update(pos: usize, tree: &mut FenwickTree<i32>, jump_arr: &Vec<(i32, usize)>, delta: i32) {
     // left
     tree.update(pos, -jump_arr[0].0 * delta);
     let mut prev = jump_arr[0].0;
@@ -183,7 +183,7 @@ fn update(pos: usize, tree: &mut FenwickTree<i64>, jump_arr: &Vec<(i64, usize)>,
         tree.update(p, delta * (prev - *step_size));
         prev = *step_size;
     }
-    tree.update(0, delta*prev);
+    tree.update(0, delta * prev);
 
     // right
     let mut prev = 0;
@@ -197,14 +197,13 @@ fn update(pos: usize, tree: &mut FenwickTree<i64>, jump_arr: &Vec<(i64, usize)>,
     }
 }
 
-
 fn change_frog(
     pos: usize,
-    delta: i64,
-    even_tree: &mut FenwickTree<i64>,
-    odd_tree: &mut FenwickTree<i64>,
-    even: &Vec<(i64, usize)>,
-    odd: &Vec<(i64, usize)>,
+    delta: i32,
+    even_tree: &mut FenwickTree<i32>,
+    odd_tree: &mut FenwickTree<i32>,
+    even: &Vec<(i32, usize)>,
+    odd: &Vec<(i32, usize)>,
 ) {
     if pos % 2 == 0 {
         update(pos, even_tree, even, delta);
@@ -215,7 +214,7 @@ fn change_frog(
     }
 }
 
-fn query(t: usize, even_tree: &mut FenwickTree<i64>, odd_tree: &mut FenwickTree<i64>) -> i64 {
+fn query(t: usize, even_tree: &mut FenwickTree<i32>, odd_tree: &mut FenwickTree<i32>) -> i32 {
     if t % 2 == 0 {
         return even_tree.query(t);
     }
@@ -234,18 +233,20 @@ fn main() {
                 &mut odd
             }
         };
-        let m = moves(i as i64, arr[arr.len()-1].0);
+        let m = moves(i as i32, arr[arr.len() - 1].0);
 
-        if m != arr[arr.len()-1].0 {
+        if m != arr[arr.len() - 1].0 {
             arr.push((m, i));
         }
     }
 
-    let mut even_tree = FenwickTree::new(MAX);
-    let mut odd_tree = FenwickTree::new(MAX);
+    let mut even_tree = FenwickTree::new();
+    let mut odd_tree = FenwickTree::new();
     let (_, mut t): (usize, usize) = io.r2();
-    for i in io.line().map(|x| x.parse::<usize>().unwrap()) {
-        change_frog(i, 1, &mut even_tree, &mut odd_tree, &even, &odd);
+    unsafe {
+        for i in io.line().map(|x| x.parse().unwrap_unchecked()) {
+            change_frog(i, 1, &mut even_tree, &mut odd_tree, &even, &odd);
+        }
     }
 
     let c = io.r();
