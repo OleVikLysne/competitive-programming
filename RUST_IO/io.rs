@@ -18,7 +18,10 @@ impl IO {
         unsafe { s.parse::<T>().unwrap_unchecked() }
     }
 
-    fn parse_next<T: std::str::FromStr>(&self, line_split: &mut std::str::SplitAsciiWhitespace) -> T {
+    fn parse_next<T: std::str::FromStr>(
+        &self,
+        line_split: &mut std::str::SplitAsciiWhitespace,
+    ) -> T {
         unsafe { self.parse(line_split.next().unwrap_unchecked()) }
     }
 
@@ -36,7 +39,10 @@ impl IO {
         self.buf.clear();
         let _ = self.stdin.read_line(&mut self.buf);
         let mut line_split = self.buf.split_ascii_whitespace();
-        (self.parse_next(&mut line_split), self.parse_next(&mut line_split))
+        (
+            self.parse_next(&mut line_split),
+            self.parse_next(&mut line_split),
+        )
     }
 
     fn r3<T1, T2, T3>(&mut self) -> (T1, T2, T3)
@@ -93,6 +99,12 @@ impl IO {
         )
     }
 
+    fn line(&mut self) -> std::str::SplitAsciiWhitespace {
+        self.buf.clear();
+        let _ = self.stdin.read_line(&mut self.buf);
+        return self.buf.split_ascii_whitespace();
+    }
+
     fn vec<T: std::str::FromStr>(&mut self) -> Vec<T> {
         self.buf.clear();
         let _ = self.stdin.read_line(&mut self.buf);
@@ -112,4 +124,5 @@ impl IO {
 
 fn main() {
     let mut io = IO::new();
+    
 }
