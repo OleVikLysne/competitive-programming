@@ -1,119 +1,235 @@
-// only tested with max queries
+use std::fmt::Display;
 
-struct SegmentTree<T> {
-    tree: Vec<T>,
-    n: usize,
-    op: fn(T, T) -> T
+struct IO {
+    buf: String,
+    stdin: std::io::Stdin,
 }
 
-impl<T> SegmentTree<T> 
+#[allow(dead_code)]
+impl IO {
+    fn new() -> Self {
+        IO {
+            buf: String::new(),
+            stdin: std::io::stdin(),
+        }
+    }
+
+    fn parse<T: std::str::FromStr>(&self, s: &str) -> T {
+        unsafe { s.parse::<T>().unwrap_unchecked() }
+    }
+
+    fn parse_next<T: std::str::FromStr>(
+        &self,
+        line_split: &mut std::str::SplitAsciiWhitespace,
+    ) -> T {
+        unsafe { self.parse(line_split.next().unwrap_unchecked()) }
+    }
+
+    fn r<T: std::str::FromStr>(&mut self) -> T {
+        self.buf.clear();
+        let _ = self.stdin.read_line(&mut self.buf);
+        self.parse(self.buf.trim())
+    }
+
+    fn r2<T1, T2>(&mut self) -> (T1, T2)
     where
-    T: Clone + Copy + Default + Eq,
-{
-    fn new(arr: &[T], op: fn(T, T) -> T) -> Self {
-        let n = arr.len();
-        let mut tree = Vec::with_capacity(2*n);
-        tree.extend(std::iter::repeat(T::default()).take(n));
-        tree.extend(arr);
-
-        for i in (1..n).rev() {
-            tree[i] = op(tree[i*2], tree[i*2+1]);
-        }
-        SegmentTree{tree, n, op}
+        T1: std::str::FromStr,
+        T2: std::str::FromStr,
+    {
+        self.buf.clear();
+        let _ = self.stdin.read_line(&mut self.buf);
+        let mut line_split = self.buf.split_ascii_whitespace();
+        (
+            self.parse_next(&mut line_split),
+            self.parse_next(&mut line_split),
+        )
     }
 
-    fn update(&mut self, mut i: usize, val: T) {
-        i += self.n;
-        if self.tree[i] == val {
-            return
-        }
-        self.tree[i] = val;
-        while i > 1 {
-            i /= 2;
-            self.tree[i] = (self.op)(self.tree[2*i], self.tree[2*i+1]);
-        }
+    fn r3<T1, T2, T3>(&mut self) -> (T1, T2, T3)
+    where
+        T1: std::str::FromStr,
+        T2: std::str::FromStr,
+        T3: std::str::FromStr,
+    {
+        self.buf.clear();
+        let _ = self.stdin.read_line(&mut self.buf);
+        let mut line_split = self.buf.split_ascii_whitespace();
+        (
+            self.parse_next(&mut line_split),
+            self.parse_next(&mut line_split),
+            self.parse_next(&mut line_split),
+        )
     }
 
-    // inclusive on both sides [l, r]
-    fn query(&self, mut l: usize, mut r: usize)  -> T {
-        l += self.n;
-        r += self.n;
-        if l == r {
-            return self.tree[l];
-        }
-        let mut res = (self.op)(self.tree[l], self.tree[r]);
-        let mut pl = l / 2;
-        let mut pr = r / 2;
-        while pl != pr {
-            if l % 2 == 0 {
-                res = (self.op)(res, self.tree[l+1]);
-            }
-            if r % 2 == 1 {
-                res = (self.op)(res, self.tree[r-1]);
+    fn r4<T1, T2, T3, T4>(&mut self) -> (T1, T2, T3, T4)
+    where
+        T1: std::str::FromStr,
+        T2: std::str::FromStr,
+        T3: std::str::FromStr,
+        T4: std::str::FromStr,
+    {
+        self.buf.clear();
+        let _ = self.stdin.read_line(&mut self.buf);
+        let mut line_split = self.buf.split_ascii_whitespace();
+        (
+            self.parse_next(&mut line_split),
+            self.parse_next(&mut line_split),
+            self.parse_next(&mut line_split),
+            self.parse_next(&mut line_split),
+        )
+    }
 
-            }
-            l = pl;
-            r = pr;
-            pl /= 2;
-            pr /= 2;
+    fn r5<T1, T2, T3, T4, T5>(&mut self) -> (T1, T2, T3, T4, T5)
+    where
+        T1: std::str::FromStr,
+        T2: std::str::FromStr,
+        T3: std::str::FromStr,
+        T4: std::str::FromStr,
+        T5: std::str::FromStr,
+    {
+        self.buf.clear();
+        let _ = self.stdin.read_line(&mut self.buf);
+        let mut line_split = self.buf.split_ascii_whitespace();
+        (
+            self.parse_next(&mut line_split),
+            self.parse_next(&mut line_split),
+            self.parse_next(&mut line_split),
+            self.parse_next(&mut line_split),
+            self.parse_next(&mut line_split),
+        )
+    }
+
+    fn line(&mut self) -> std::str::SplitAsciiWhitespace {
+        self.buf.clear();
+        let _ = self.stdin.read_line(&mut self.buf);
+        return self.buf.split_ascii_whitespace();
+    }
+
+    fn vec<T: std::str::FromStr>(&mut self) -> Vec<T> {
+        self.buf.clear();
+        let _ = self.stdin.read_line(&mut self.buf);
+        return self
+            .buf
+            .split_ascii_whitespace()
+            .map(|x| self.parse(x))
+            .collect();
+    }
+
+    fn print_vec<T: Display>(&self, vec: &Vec<T>) {
+        for x in vec {
+            print!("{} ", *x);
         }
-        return res
     }
 }
+
+struct FenwickTree<T> {
+    tree: Vec<T>,
+    n: isize,
+}
+
+#[allow(dead_code)]
+impl<T> FenwickTree<T>
+where
+    T: Clone + Copy + Default + Eq + std::ops::Sub<Output = T> + std::ops::AddAssign + std::ops::Add<Output=T> + Ord
+{
+
+    fn op(x: T, y: T) -> T {
+        return x+y;
+    }
+
+    fn new(n: usize, arr: Option<&[T]>) -> Self {
+        let default = T::default();
+        let tree = match arr {
+            Some(v) => Self::construct(v, default),
+            None => vec![default; n+1]
+        };
+        FenwickTree {
+            tree: tree,
+            n: n as isize,
+        }
+    }
+
+    fn construct(arr: &[T], default: T) -> Vec<T> {
+        let mut tree = vec![default; arr.len()+1];
+        for i in 1..tree.len() {
+            tree[i] = Self::op(tree[i], arr[i-1]);
+            let j = i + (i as isize & -(i as isize)) as usize;
+            if j < tree.len() {
+                tree[j] = Self::op(tree[j], tree[i]);
+            }
+        }
+        return tree
+    }
+
+    fn update(&mut self, i: usize, val: T) {
+        let mut j = i as isize + 1;
+        while j <= self.n {
+            self.tree[j as usize] = Self::op(self.tree[j as usize], val);
+            j += j & -j
+        }
+    }
+
+    // [0, r]
+    fn query(&self, r: usize) -> T {
+        let mut r = r as isize + 1;
+        let mut res = T::default();
+        while r > 0 {
+            res = Self::op(res, self.tree[r as usize]);
+            r -= r & -r
+        }
+        return res;
+    }
+
+    fn sum(&self, l: usize, r: usize) -> T {
+        let res = self.query(r);
+        if l > 0 {
+            return res - self.query(l - 1);
+        }
+        return res;
+    }
+}
+
 
 
 fn main() {
-    let stdin = std::io::stdin();
-    let mut buf = String::new();
-    let _ = stdin.read_line(&mut buf);
-    let mut foo = buf.split_whitespace();
-    let _ = foo.next();
-    let q: u32 = foo.next().unwrap().parse().unwrap();
-    buf.clear();
-
-    let _ = stdin.read_line(&mut buf);
-    let mut values: Vec<u64> = buf.split_whitespace().map(|x| x.parse::<u64>().unwrap()).collect();
-    buf.clear();
-    let _ = stdin.read_line(&mut buf);
-    let mut gems: Vec<u8> = buf.trim().chars().map(|x| (x.to_digit(10).unwrap()-1) as u8).collect();
-    buf.clear();
+    let mut io = IO::new();
+    let (_, q): (u32, u32) = io.r2();
+    let mut values: Vec<usize> = io.vec();
+    let mut gems: Vec<usize> = io.r::<String>().chars().map(|x| (x.to_digit(10).unwrap()-1) as usize).collect();
 
     let mut trees = Vec::with_capacity(6);
     for k in 0..6 {
-        let base: Vec<u32> = gems.iter().map(|x| (*x == k) as u32).collect();
-        let seg_tree = SegmentTree::new(&base, u32::wrapping_add);
-        trees.push(seg_tree);
+        let base: Vec<isize> = gems.iter().map(|x| (*x == k) as isize).collect();
+        let tree = FenwickTree::new(base.len(), Some(&base));
+        trees.push(tree);
     }
 
     for _ in 0..q {
-        let _ = stdin.read_line(&mut buf);
-        let mut foo = buf.split_whitespace();
-        let a = foo.next().unwrap();
+        let (a, b, c): (char, usize, usize) = io.r3();
 
-        if a == "1" {
-            let k: usize = foo.next().unwrap().parse::<usize>().unwrap()-1;
-            let p: u8 = foo.next().unwrap().parse::<u8>().unwrap()-1;
-            let old_p = gems[k] as usize;
-            trees[old_p].update(k, 0);
-            trees[p as usize].update(k, 1);
+        if a == '1' {
+            let k: usize = b-1;
+            let p = c -1;
+            let old_p = gems[k];
+            trees[old_p].update(k, -1);
+            trees[p].update(k, 1);
             gems[k] = p;
         }
 
-        else if a == "2" {
-            let p: usize = foo.next().unwrap().parse::<usize>().unwrap()-1;
-            let v: u64 = foo.next().unwrap().parse().unwrap();
+        else if a == '2' {
+            let p = b-1;
+            let v = c ;
             values[p] = v;
         }
 
-        else if a == "3" {
-            let l: usize = foo.next().unwrap().parse::<usize>().unwrap()-1;
-            let r: usize = foo.next().unwrap().parse::<usize>().unwrap()-1;
-            let mut s: u64 = 0;
+        else if a == '3' {
+            let l: usize = b-1;
+            let r: usize = c-1;
+            let mut s: usize = 0;
             for (i, tree) in trees.iter().enumerate() {
-                s += tree.query(l, r) as u64 * values[i];
+                s += tree.sum(l, r) as usize * values[i];
             }
             println!("{}", s);
         }
-        buf.clear();
     }
 }
