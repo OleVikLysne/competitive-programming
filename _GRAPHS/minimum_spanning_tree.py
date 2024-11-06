@@ -4,39 +4,42 @@
 # KRUSKAL #
 ###########
 
-def find(parent, i):
-    if parent[i] == i:
-        return i
-    return find(parent, parent[i])
+class UnionFind:
+    def __init__(self, n):
+        self.parent = [x for x in range(n)]
+        self.rank = [0] * n
 
+    def find(self, i):
+        if self.parent[i] == i:
+            return i
+        return self.find(self.parent[i])
 
-def union(parent, rank, x, y):
-    x = find(parent, x)
-    y = find(parent, y)
-    if rank[x] > rank[y]:
-        parent[y] = x
-        rank[x] += 1
-    else:
-        parent[x] = y
-        rank[y] += 1
+    def union(self, x, y):
+        x = self.find(x)
+        y = self.find(y)
+        if self.rank[x] > self.rank[y]:
+            self.parent[y] = x
+            self.rank[x] += 1
+        else:
+            self.parent[x] = y
+            self.rank[y] += 1
 
 
 # edges are on the form (u, v, w) where w is a weight
 def kruskal(edges: list[tuple[int, int, int]], num_nodes):
     edges.sort(key=lambda x: x[2], reverse=True)
     selected_edges = []
-    parent = [x for x in range(num_nodes)]
-    rank = [0] * num_nodes
+    uf = UnionFind(num_nodes)
     tree_sum = 0
 
     while len(selected_edges) < num_nodes - 1:
         u, v, w = edges.pop()
-        x = find(parent, u)
-        y = find(parent, v)
+        x = uf.find(u)
+        y = uf.find(v)
         if x != y:
             selected_edges.append((u, v, w))
             tree_sum += w
-            union(parent, rank, x, y)
+            uf.union(x, y)
 
     return selected_edges, tree_sum
 
