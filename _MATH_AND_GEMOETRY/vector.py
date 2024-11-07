@@ -24,8 +24,14 @@ class Vector:
     @property
     def length(self) -> float:
         return math.sqrt(sum(a**2 for a in self.coords))
+    
+    @property
+    def is_zero_vec(self):
+        return all(x == 0 for x in self.coords)
 
     def normalize(self, in_place=True):
+        if self.is_zero_vec:
+            return self
         if not in_place:
             return self / self.length
         self /= self.length
@@ -152,6 +158,12 @@ class Vector:
         if isinstance(other, Vector):
             return self.coords == other.coords
         return False
+    
+    def __lt__(self, other):
+        return self.coords < other.coords
+
+    def __gt__(self, other):
+        return self.coords > other.coords
 
     def __repr__(self):
         return str(self.coords)
@@ -179,22 +191,31 @@ def intersect(line1: tuple[Vector], line2: tuple[Vector]):
     return None
 
 
-
 # Convex hull
+from functools import cmp_to_key
 def graham_scan(points: list[Vector]):
+    def compare(anchor: Vector, p1: Vector, p2: Vector):
+        o = anchor.orient(p1, p2)
+        if o < 0:
+            return 1
+        else:
+            return -1
+
     if len(points) <= 2:
         return [x for x in points]
     anchor = points[0]
     anchor_idx = 0
     for i in range(1, len(points)):
         p = points[i]
+        #if p.x < anchor.x or (p.x == anchor.x and p.y < anchor.y):
         if p.y < anchor.y or (p.y == anchor.y and p.x < anchor.x):
             anchor = p
             anchor_idx = i
 
     points[-1], points[anchor_idx] = points[anchor_idx], points[-1]
     points.pop()
-    points.sort(key=lambda x: (x - anchor).polar_angle())
+    points.sort(key=cmp_to_key(lambda p1, p2: compare(anchor, p1, p2)))
+    #points.sort(key=lambda x: (x - anchor).polar_angle())
 
     hull = [anchor]
     for p in points:
@@ -258,3 +279,16 @@ def polygon_intersect(poly1: list[Vector], poly2: list[Vector]):
 
     # and finally, compute the convex hull to get the polygon itself
     return graham_scan(points)
+
+
+def rotating_calipers(convex_hull: list[Vector]):
+    n = len(convex_hull)
+    max_distance = 0
+    for i in range(n):
+        j = (i+1) % n
+        k = (j+1) % n
+        while convex_hull[i].squared_dist(convex_hull[j]) < convex_hull[i].squared_dist(convex_hull[k]):
+            j = k
+            k = (k+1) % n
+        max_distance = max(max_distance, convex_hull[i].squared_dist(convex_hull[j]))
+    return math.sqrt(max_distance)
