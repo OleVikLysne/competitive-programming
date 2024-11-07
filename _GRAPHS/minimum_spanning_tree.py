@@ -10,9 +10,9 @@ class UnionFind:
         self.rank = [0] * n
 
     def find(self, i):
-        if self.parent[i] == i:
-            return i
-        return self.find(self.parent[i])
+        while self.parent[i] != i:
+            i = self.parent[i]
+        return i
 
     def union(self, x, y):
         x = self.find(x)
