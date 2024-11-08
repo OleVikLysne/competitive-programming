@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-B = 2**61-1
+B = 2**61 - 1
 A = 31
 
 N, k = map(int, input().split())
@@ -12,34 +12,31 @@ for i in range(k):
     hashed_str += string[i] * pow(A, k - i - 1, B)
     hashed_str %= B
 
-hashes = defaultdict(list)
-hashes[hashed_str].append((0, k - 1))
+hashes = defaultdict(lambda: [0, (N, -1)])
+hashes[hashed_str] = [1, (0, k - 1)]
 for i in range(k, n):
-    j = i % N
     hashed_str -= string[(i - k) % N] * pow(A, k - 1, B)
     hashed_str *= A
-    hashed_str += string[j]
+    hashed_str += string[i % N]
     hashed_str %= B
-
-    if len(hashes[hashed_str]) > 0:
-        prev = hashes[hashed_str][-1][1]
-        if i - k + 1 < prev or (i >= N and i % N >= hashes[hashed_str][0][0]):
-            continue
-    hashes[hashed_str].append((i - k + 1, i))
+    prev = hashes[hashed_str][1]
+    if i-k+1 >= prev[1] and (i < N or i % N < prev[0]):
+        hashes[hashed_str][0] += 1
+        hashes[hashed_str][1] = (i - k + 1, i)
 
 
-def build(pattern):
-    n = len(pattern)
-    lps = [0]*n
+def build(j, k):
+    n = k - j + 1
+    lps = [0] * n
     length = 0
     i = 1
     while i < n:
-        if pattern[i] == pattern[length]:
+        if string[(i + j) % N] == string[(length + j) % N]:
             length += 1
             lps[i] = length
             i += 1
         elif length != 0:
-            length = lps[length-1]
+            length = lps[length - 1]
         else:
             i += 1
 
@@ -56,6 +53,7 @@ def build(pattern):
     temp.reverse()
     res.extend(temp)
     return res
+
 
 def min_lex(i, j, a, b):
     j %= N
@@ -74,23 +72,22 @@ def min_lex(i, j, a, b):
     return True
 
 
-longest = len(max(hashes.values(), key=len))
+longest = max(hashes.values(), key=lambda x: x[0])[0]
 candidates = []
-for v in hashes.values():
-    if len(v) == longest:
-        candidates.append(v[0])
+for x in hashes.values():
+    if x[0] == longest:
+        candidates.append(x[1])
 
 candidates.sort()
 i, j = candidates[0]
-pat = build(tuple(string[k % N] for k in range(i, j + 1)))
+pat = build(i, j)
 for a, b in candidates[1:]:
-    if a-i < len(pat):
-        diff = pat[a-i]
+    if a - i < len(pat):
+        diff = pat[a - i]
     else:
         diff = 0
-    if not min_lex(i+diff, j, a+diff, b):
+    if not min_lex(i + diff, j, a + diff, b):
         i, j = a, b
-        pat = build(tuple(string[k % N] for k in range(i, j + 1)))
-
+        pat = build(i, j)
 
 print("".join(chr(string[k % N]) for k in range(i, j + 1)))
