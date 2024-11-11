@@ -105,6 +105,12 @@ impl IO {
         return self.buf.split_ascii_whitespace();
     }
 
+    fn all(&mut self) -> String {
+        self.buf.clear();
+        let _ = self.stdin.read_to_string(&mut self.buf);
+        return self.buf.trim().to_string();
+    }
+
     fn vec<T: std::str::FromStr>(&mut self) -> Vec<T> {
         self.buf.clear();
         let _ = self.stdin.read_line(&mut self.buf);
