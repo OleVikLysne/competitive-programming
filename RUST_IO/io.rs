@@ -122,7 +122,7 @@ impl IO {
             .collect();
     }
 
-    fn print_vec<T: Display>(&self, vec: &Vec<T>) {
+    fn print_vec<T: Display>(&self, vec: &[T]) {
         for x in vec {
             print!("{} ", *x);
         }
