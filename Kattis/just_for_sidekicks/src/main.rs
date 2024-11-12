@@ -124,58 +124,57 @@ impl IO {
 
 struct FenwickTree<T> {
     tree: Vec<T>,
-    n: isize,
+    n: usize,
+    op: fn(T, T) -> T,
+    default: T,
 }
 
 #[allow(dead_code)]
 impl<T> FenwickTree<T>
 where
-    T: Clone + Copy + Default + Eq + std::ops::Sub<Output = T> + std::ops::AddAssign + std::ops::Add<Output=T> + Ord
+    T: Clone + Copy + Default + Eq + std::ops::Sub<Output = T>,
 {
-
-    fn op(x: T, y: T) -> T {
-        return x+y;
-    }
-
-    fn new(n: usize, arr: Option<&[T]>) -> Self {
+    fn new(n: usize, arr: Option<&[T]>, op: fn(T, T) -> T) -> Self {
         let default = T::default();
         let tree = match arr {
-            Some(v) => Self::construct(v, default),
-            None => vec![default; n+1]
+            Some(v) => Self::construct(v, op, default),
+            None => vec![default; n + 1],
         };
         FenwickTree {
             tree: tree,
-            n: n as isize,
+            n: n,
+            op: op,
+            default: default,
         }
     }
 
-    fn construct(arr: &[T], default: T) -> Vec<T> {
-        let mut tree = vec![default; arr.len()+1];
+    fn construct(arr: &[T], op: fn(T, T) -> T, default: T) -> Vec<T> {
+        let mut tree = vec![default; arr.len() + 1];
         for i in 1..tree.len() {
-            tree[i] = Self::op(tree[i], arr[i-1]);
-            let j = i + (i as isize & -(i as isize)) as usize;
+            tree[i] = op(tree[i], arr[i - 1]);
+            let j = i + (i & i.wrapping_neg());
             if j < tree.len() {
-                tree[j] = Self::op(tree[j], tree[i]);
+                tree[j] = op(tree[j], tree[i]);
             }
         }
-        return tree
+        return tree;
     }
 
-    fn update(&mut self, i: usize, val: T) {
-        let mut j = i as isize + 1;
-        while j <= self.n {
-            self.tree[j as usize] = Self::op(self.tree[j as usize], val);
-            j += j & -j
+    fn update(&mut self, mut i: usize, val: T) {
+        i += 1;
+        while i <= self.n {
+            self.tree[i] = (self.op)(self.tree[i], val);
+            i += i & i.wrapping_neg();
         }
     }
 
     // [0, r]
-    fn query(&self, r: usize) -> T {
-        let mut r = r as isize + 1;
-        let mut res = T::default();
+    fn query(&self, mut r: usize) -> T {
+        r += 1;
+        let mut res = self.default;
         while r > 0 {
-            res = Self::op(res, self.tree[r as usize]);
-            r -= r & -r
+            res = (self.op)(res, self.tree[r]);
+            r -= r & r.wrapping_neg();
         }
         return res;
     }
@@ -200,7 +199,7 @@ fn main() {
     let mut trees = Vec::with_capacity(6);
     for k in 0..6 {
         let base: Vec<isize> = gems.iter().map(|x| (*x == k) as isize).collect();
-        let tree = FenwickTree::new(base.len(), Some(&base));
+        let tree = FenwickTree::new(base.len(), Some(&base), isize::wrapping_add);
         trees.push(tree);
     }
 

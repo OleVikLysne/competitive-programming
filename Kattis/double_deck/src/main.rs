@@ -124,9 +124,8 @@ impl IO {
 
 struct FenwickTree<T> {
     tree: Vec<T>,
-    n: isize,
     op: fn(T, T) -> T,
-    default: T
+    default: T,
 }
 
 #[allow(dead_code)]
@@ -138,43 +137,42 @@ where
         let default = T::default();
         let tree = match arr {
             Some(v) => Self::construct(v, op, default),
-            None => vec![default; n+1]
+            None => vec![default; n + 1],
         };
         FenwickTree {
             tree: tree,
-            n: n as isize,
             op: op,
-            default: default
+            default: default,
         }
     }
 
     fn construct(arr: &[T], op: fn(T, T) -> T, default: T) -> Vec<T> {
-        let mut tree = vec![default; arr.len()+1];
+        let mut tree = vec![default; arr.len() + 1];
         for i in 1..tree.len() {
-            tree[i] = op(tree[i], arr[i-1]);
-            let j = i + (i as isize & -(i as isize)) as usize;
+            tree[i] = op(tree[i], arr[i - 1]);
+            let j = i + (i & i.wrapping_neg());
             if j < tree.len() {
                 tree[j] = op(tree[j], tree[i]);
             }
         }
-        return tree
+        return tree;
     }
 
-    fn update(&mut self, i: usize, val: T) {
-        let mut j = i as isize + 1;
-        while j <= self.n {
-            self.tree[j as usize] = (self.op)(self.tree[j as usize], val);
-            j += j & -j
+    fn update(&mut self, mut i: usize, val: T) {
+        i += 1;
+        while i < self.tree.len() {
+            self.tree[i] = (self.op)(self.tree[i], val);
+            i += i & i.wrapping_neg();
         }
     }
 
     // [0, r]
-    fn query(&self, r: usize) -> T {
-        let mut r = r as isize + 1;
+    fn query(&self, mut r: usize) -> T {
+        r += 1;
         let mut res = self.default;
         while r > 0 {
-            res = (self.op)(res, self.tree[r as usize]);
-            r -= r & -r
+            res = (self.op)(res, self.tree[r]);
+            r -= r & r.wrapping_neg();
         }
         return res;
     }
@@ -187,7 +185,6 @@ where
         return res;
     }
 }
-
 fn main() {
     let mut io = IO::new();
     let (n, k): (usize, usize) = io.r2();
@@ -196,7 +193,7 @@ fn main() {
     for i in (0..n * k).rev() {
         m[arr1[i] - 1].push(i);
     }
-    let mut tree: FenwickTree<u16> = FenwickTree::new(n*k, None, u16::max);
+    let mut tree: FenwickTree<u16> = FenwickTree::new(n * k, None, u16::max);
 
     for x in io.vec::<usize>() {
         for i in m[x - 1].iter() {
