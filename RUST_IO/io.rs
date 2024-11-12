@@ -1,11 +1,9 @@
 use std::fmt::Display;
 use std::io::Read;
-
-
+use std::str::{Chars, FromStr, SplitAsciiWhitespace};
 
 fn main() {
     let mut io = IO::new();
-    
 }
 
 struct IO {
@@ -22,18 +20,15 @@ impl IO {
         }
     }
 
-    fn parse<T: std::str::FromStr>(&self, s: &str) -> T {
+    fn parse<T: FromStr>(&self, s: &str) -> T {
         unsafe { s.parse::<T>().unwrap_unchecked() }
     }
 
-    fn parse_next<T: std::str::FromStr>(
-        &self,
-        line_split: &mut std::str::SplitAsciiWhitespace,
-    ) -> T {
+    fn parse_next<T: FromStr>(&self, line_split: &mut SplitAsciiWhitespace) -> T {
         unsafe { self.parse(line_split.next().unwrap_unchecked()) }
     }
 
-    fn r<T: std::str::FromStr>(&mut self) -> T {
+    fn r<T: FromStr>(&mut self) -> T {
         self.buf.clear();
         let _ = self.stdin.read_line(&mut self.buf);
         self.parse(self.buf.trim())
@@ -41,8 +36,8 @@ impl IO {
 
     fn r2<T1, T2>(&mut self) -> (T1, T2)
     where
-        T1: std::str::FromStr,
-        T2: std::str::FromStr,
+        T1: FromStr,
+        T2: FromStr,
     {
         self.buf.clear();
         let _ = self.stdin.read_line(&mut self.buf);
@@ -55,9 +50,9 @@ impl IO {
 
     fn r3<T1, T2, T3>(&mut self) -> (T1, T2, T3)
     where
-        T1: std::str::FromStr,
-        T2: std::str::FromStr,
-        T3: std::str::FromStr,
+        T1: FromStr,
+        T2: FromStr,
+        T3: FromStr,
     {
         self.buf.clear();
         let _ = self.stdin.read_line(&mut self.buf);
@@ -71,10 +66,10 @@ impl IO {
 
     fn r4<T1, T2, T3, T4>(&mut self) -> (T1, T2, T3, T4)
     where
-        T1: std::str::FromStr,
-        T2: std::str::FromStr,
-        T3: std::str::FromStr,
-        T4: std::str::FromStr,
+        T1: FromStr,
+        T2: FromStr,
+        T3: FromStr,
+        T4: FromStr,
     {
         self.buf.clear();
         let _ = self.stdin.read_line(&mut self.buf);
@@ -89,11 +84,11 @@ impl IO {
 
     fn r5<T1, T2, T3, T4, T5>(&mut self) -> (T1, T2, T3, T4, T5)
     where
-        T1: std::str::FromStr,
-        T2: std::str::FromStr,
-        T3: std::str::FromStr,
-        T4: std::str::FromStr,
-        T5: std::str::FromStr,
+        T1: FromStr,
+        T2: FromStr,
+        T3: FromStr,
+        T4: FromStr,
+        T5: FromStr,
     {
         self.buf.clear();
         let _ = self.stdin.read_line(&mut self.buf);
@@ -107,10 +102,16 @@ impl IO {
         )
     }
 
-    fn line(&mut self) -> std::str::SplitAsciiWhitespace {
+    fn line_split(&mut self) -> SplitAsciiWhitespace {
         self.buf.clear();
         let _ = self.stdin.read_line(&mut self.buf);
         return self.buf.split_ascii_whitespace();
+    }
+
+    fn chars(&mut self) -> Chars {
+        self.buf.clear();
+        let _ = self.stdin.read_line(&mut self.buf);
+        return self.buf.trim().chars();
     }
 
     fn all(&mut self) -> String {
@@ -119,7 +120,7 @@ impl IO {
         return self.buf.trim().to_string();
     }
 
-    fn vec<T: std::str::FromStr>(&mut self) -> Vec<T> {
+    fn vec<T: FromStr>(&mut self) -> Vec<T> {
         self.buf.clear();
         let _ = self.stdin.read_line(&mut self.buf);
         return self
