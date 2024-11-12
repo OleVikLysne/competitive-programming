@@ -1,12 +1,12 @@
 const MAX: usize = 1_000_001;
-
 use std::fmt::Display;
+use std::io::Read;
+use std::str::{Chars, FromStr, SplitAsciiWhitespace};
 
 struct IO {
     buf: String,
     stdin: std::io::Stdin,
 }
-
 #[allow(dead_code)]
 impl IO {
     fn new() -> Self {
@@ -16,30 +16,30 @@ impl IO {
         }
     }
 
-    fn parse<T: std::str::FromStr>(&self, s: &str) -> T {
+    fn _rl(&mut self) {
+        self.buf.clear();
+        let _ = self.stdin.read_line(&mut self.buf);
+    }
+
+    fn parse<T: FromStr>(&self, s: &str) -> T {
         unsafe { s.parse::<T>().unwrap_unchecked() }
     }
 
-    fn parse_next<T: std::str::FromStr>(
-        &self,
-        line_split: &mut std::str::SplitAsciiWhitespace,
-    ) -> T {
+    fn parse_next<T: FromStr>(&self, line_split: &mut SplitAsciiWhitespace) -> T {
         unsafe { self.parse(line_split.next().unwrap_unchecked()) }
     }
 
-    fn r<T: std::str::FromStr>(&mut self) -> T {
-        self.buf.clear();
-        let _ = self.stdin.read_line(&mut self.buf);
+    fn r<T: FromStr>(&mut self) -> T {
+        self._rl();
         self.parse(self.buf.trim())
     }
 
     fn r2<T1, T2>(&mut self) -> (T1, T2)
     where
-        T1: std::str::FromStr,
-        T2: std::str::FromStr,
+        T1: FromStr,
+        T2: FromStr,
     {
-        self.buf.clear();
-        let _ = self.stdin.read_line(&mut self.buf);
+        self._rl();
         let mut line_split = self.buf.split_ascii_whitespace();
         (
             self.parse_next(&mut line_split),
@@ -49,12 +49,11 @@ impl IO {
 
     fn r3<T1, T2, T3>(&mut self) -> (T1, T2, T3)
     where
-        T1: std::str::FromStr,
-        T2: std::str::FromStr,
-        T3: std::str::FromStr,
+        T1: FromStr,
+        T2: FromStr,
+        T3: FromStr,
     {
-        self.buf.clear();
-        let _ = self.stdin.read_line(&mut self.buf);
+        self._rl();
         let mut line_split = self.buf.split_ascii_whitespace();
         (
             self.parse_next(&mut line_split),
@@ -65,13 +64,12 @@ impl IO {
 
     fn r4<T1, T2, T3, T4>(&mut self) -> (T1, T2, T3, T4)
     where
-        T1: std::str::FromStr,
-        T2: std::str::FromStr,
-        T3: std::str::FromStr,
-        T4: std::str::FromStr,
+        T1: FromStr,
+        T2: FromStr,
+        T3: FromStr,
+        T4: FromStr,
     {
-        self.buf.clear();
-        let _ = self.stdin.read_line(&mut self.buf);
+        self._rl();
         let mut line_split = self.buf.split_ascii_whitespace();
         (
             self.parse_next(&mut line_split),
@@ -83,14 +81,13 @@ impl IO {
 
     fn r5<T1, T2, T3, T4, T5>(&mut self) -> (T1, T2, T3, T4, T5)
     where
-        T1: std::str::FromStr,
-        T2: std::str::FromStr,
-        T3: std::str::FromStr,
-        T4: std::str::FromStr,
-        T5: std::str::FromStr,
+        T1: FromStr,
+        T2: FromStr,
+        T3: FromStr,
+        T4: FromStr,
+        T5: FromStr,
     {
-        self.buf.clear();
-        let _ = self.stdin.read_line(&mut self.buf);
+        self._rl();
         let mut line_split = self.buf.split_ascii_whitespace();
         (
             self.parse_next(&mut line_split),
@@ -101,28 +98,41 @@ impl IO {
         )
     }
 
-    fn line(&mut self) -> std::str::SplitAsciiWhitespace {
-        self.buf.clear();
-        let _ = self.stdin.read_line(&mut self.buf);
-        return self.buf.split_ascii_whitespace();
+    fn line<T: FromStr>(&mut self) -> impl Iterator<Item = T> + '_ {
+        self._rl();
+        return self.buf.split_ascii_whitespace().map(|x| self.parse(x));
     }
 
-    fn vec<T: std::str::FromStr>(&mut self) -> Vec<T> {
-        self.buf.clear();
-        let _ = self.stdin.read_line(&mut self.buf);
-        return self
-            .buf
-            .split_ascii_whitespace()
-            .map(|x| self.parse(x))
-            .collect();
+    fn lineln<T: FromStr>(&mut self, n: usize) -> impl Iterator<Item = T> + '_ {
+        return (0..n).map(|_| self.r())
     }
 
-    fn print_vec<T: Display>(&self, vec: &Vec<T>) {
+    fn chars(&mut self) -> Chars {
+        self._rl();
+        return self.buf.trim().chars();
+    }
+
+    fn all(&mut self) -> String {
+        self.buf.clear();
+        let _ = self.stdin.read_to_string(&mut self.buf);
+        return self.buf.trim().to_string();
+    }
+
+    fn vec<T: FromStr>(&mut self) -> Vec<T> {
+        return self.line().collect();
+    }
+    
+    fn vecln<T: FromStr>(&mut self, n: usize) -> Vec<T> {
+        return self.lineln(n).collect();
+    }
+
+    fn print_vec<T: Display>(&self, vec: &[T]) {
         for x in vec {
             print!("{} ", *x);
         }
     }
 }
+
 
 struct FenwickTree<T> {
     tree: [T; MAX+1],
@@ -244,7 +254,7 @@ fn main() {
     let mut odd_tree = FenwickTree::new();
     let (_, mut t): (usize, usize) = io.r2();
 
-    for i in io.vec() {
+    for i in io.line() {
         change_frog(i, 1, &mut even_tree, &mut odd_tree, &even, &odd);
     }
 

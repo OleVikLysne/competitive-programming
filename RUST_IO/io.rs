@@ -4,6 +4,7 @@ use std::str::{Chars, FromStr, SplitAsciiWhitespace};
 
 fn main() {
     let mut io = IO::new();
+
 }
 
 struct IO {
@@ -20,6 +21,11 @@ impl IO {
         }
     }
 
+    fn _rl(&mut self) {
+        self.buf.clear();
+        let _ = self.stdin.read_line(&mut self.buf);
+    }
+
     fn parse<T: FromStr>(&self, s: &str) -> T {
         unsafe { s.parse::<T>().unwrap_unchecked() }
     }
@@ -29,8 +35,7 @@ impl IO {
     }
 
     fn r<T: FromStr>(&mut self) -> T {
-        self.buf.clear();
-        let _ = self.stdin.read_line(&mut self.buf);
+        self._rl();
         self.parse(self.buf.trim())
     }
 
@@ -39,8 +44,7 @@ impl IO {
         T1: FromStr,
         T2: FromStr,
     {
-        self.buf.clear();
-        let _ = self.stdin.read_line(&mut self.buf);
+        self._rl();
         let mut line_split = self.buf.split_ascii_whitespace();
         (
             self.parse_next(&mut line_split),
@@ -54,8 +58,7 @@ impl IO {
         T2: FromStr,
         T3: FromStr,
     {
-        self.buf.clear();
-        let _ = self.stdin.read_line(&mut self.buf);
+        self._rl();
         let mut line_split = self.buf.split_ascii_whitespace();
         (
             self.parse_next(&mut line_split),
@@ -71,8 +74,7 @@ impl IO {
         T3: FromStr,
         T4: FromStr,
     {
-        self.buf.clear();
-        let _ = self.stdin.read_line(&mut self.buf);
+        self._rl();
         let mut line_split = self.buf.split_ascii_whitespace();
         (
             self.parse_next(&mut line_split),
@@ -90,8 +92,7 @@ impl IO {
         T4: FromStr,
         T5: FromStr,
     {
-        self.buf.clear();
-        let _ = self.stdin.read_line(&mut self.buf);
+        self._rl();
         let mut line_split = self.buf.split_ascii_whitespace();
         (
             self.parse_next(&mut line_split),
@@ -102,15 +103,17 @@ impl IO {
         )
     }
 
-    fn line_split(&mut self) -> SplitAsciiWhitespace {
-        self.buf.clear();
-        let _ = self.stdin.read_line(&mut self.buf);
-        return self.buf.split_ascii_whitespace();
+    fn line<T: FromStr>(&mut self) -> impl Iterator<Item = T> + '_ {
+        self._rl();
+        return self.buf.split_ascii_whitespace().map(|x| self.parse(x));
+    }
+
+    fn linenl<T: FromStr>(&mut self, n: usize) -> impl Iterator<Item = T> + '_ {
+        return (0..n).map(|_| self.r());
     }
 
     fn chars(&mut self) -> Chars {
-        self.buf.clear();
-        let _ = self.stdin.read_line(&mut self.buf);
+        self._rl();
         return self.buf.trim().chars();
     }
 
@@ -121,13 +124,11 @@ impl IO {
     }
 
     fn vec<T: FromStr>(&mut self) -> Vec<T> {
-        self.buf.clear();
-        let _ = self.stdin.read_line(&mut self.buf);
-        return self
-            .buf
-            .split_ascii_whitespace()
-            .map(|x| self.parse(x))
-            .collect();
+        return self.line().collect();
+    }
+
+    fn vecnl<T: FromStr>(&mut self, n: usize) -> Vec<T> {
+        return self.linenl(n).collect();
     }
 
     fn print_vec<T: Display>(&self, vec: &[T]) {
