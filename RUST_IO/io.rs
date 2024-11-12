@@ -1,6 +1,13 @@
 use std::fmt::Display;
 use std::io::Read;
 
+
+
+fn main() {
+    let mut io = IO::new();
+    
+}
+
 struct IO {
     buf: String,
     stdin: std::io::Stdin,
@@ -127,9 +134,4 @@ impl IO {
             print!("{} ", *x);
         }
     }
-}
-
-fn main() {
-    let mut io = IO::new();
-    
 }
