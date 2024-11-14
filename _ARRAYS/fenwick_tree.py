@@ -1,11 +1,7 @@
 class FenwickTree:
-    def __init__(self, param, op=lambda x, y: x+y):
-        self.default = 0
+    def __init__(self, param, op=lambda x, y: x + y, default=0):
         self.op = op
-        if op == max:
-            self.default = -2**62
-        elif op == min:
-            self.default = 2**62
+        self.default = default
 
         if isinstance(param, int):
             self.n = param
