@@ -4,7 +4,7 @@
 # KOSARAJU #
 ############
 
-def kosaraju(g: list[list[int]], rev_g: list[list[int]]):
+def kosaraju(g: list[list[int]], rev_g: list[list[int]]) -> list[list[int]]:
     n = len(g)
     visited = [False]*n
     order = []
@@ -44,7 +44,7 @@ def kosaraju(g: list[list[int]], rev_g: list[list[int]]):
 # TARJAN #
 ##########
 
-def tarjan(g: list[list[int]]):
+def tarjan(g: list[list[int]]) -> list[list[int]]:
     n = len(g)
 
     on_stack = [False]*n
@@ -84,43 +84,24 @@ def tarjan(g: list[list[int]]):
 
 
 
-def condense_graph(g: list[set[int]], sccs: list[list[int]]):
+def condense_graph(g: list[list[int]], sccs: list[list[int]]) -> list[set[int]]:
     """
         Condense the graph such that every SCC is represented by just one node.
-        "node_to_rep" provides a mapping from the original vertex index to its
-        "representative" node.
-
-        Modifies the graph in-place.
+        "node_to_comp" provides a mapping from the original vertex index to its
+        "representative" in the new graph.
     """
     n = len(g)
-    node_to_rep = [-1]*n
+    k = len(sccs)
+    node_to_comp = [-1]*n
+    for i in range(k):
+        for v in sccs[i]:
+            node_to_comp[v] = i
 
-    for scc in sccs:
-        rep = scc[0]
-        for v in scc:
-            node_to_rep[v] = rep
-
-    # add all edges leaving the SCC as out-edges from component rep
-    for scc in sccs:
-        if len(scc) == 1:
-            continue
-        rep = node_to_rep[scc[0]]
-        for v in scc:
-            for u in g[v]:
-                if node_to_rep[u] != rep and u != rep:
-                    g[rep].add(u)
-
-
-    # add edges entering the SCC as in-edges for the rep
+    new_g = [set() for _ in range(k)]
     for i in range(n):
-        if node_to_rep[i] != i:
-            g[i].clear()
-            continue
-        for j in g[i].copy():
-            rep = node_to_rep[j]
-            if j != rep:
-                g[i].remove(j)
-            if i != rep:
-                g[i].add(rep)
-
-    return g, node_to_rep
+        v = node_to_comp[i]
+        for j in g[i]:
+            u = node_to_comp[j]
+            if v != u:
+                new_g[v].add(u)
+    return new_g, node_to_comp
