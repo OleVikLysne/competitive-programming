@@ -8,3 +8,4 @@ target
 *.ans
 Cargo.lock
 sandbox/
+input
