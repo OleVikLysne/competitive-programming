@@ -25,7 +25,7 @@ fn search(i: isize, j: isize, grid: &[Vec<u8>], visited: &mut HashSet<(isize, is
 fn main() {
     let mut grid: Vec<Vec<u8>> = Vec::new();
     for line in std::io::stdin().lines().map(|x| x.unwrap()) {
-        grid.push(line.chars().map(|x| x as u8 - 48).collect());
+        grid.push(line.chars().map(|x| x as u8 - b'0').collect());
     }
     let rows = grid.len();
     let cols = grid[0].len();

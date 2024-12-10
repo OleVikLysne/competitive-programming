@@ -1,11 +1,7 @@
-use std::collections::HashSet;
-
-
 const DELTAS: [(isize, isize); 4] = [(1, 0), (-1, 0), (0, 1), (0, -1)];
 
-fn search(i: isize, j: isize, grid: &[Vec<u8>], visited: &mut HashSet<(isize, isize)>) -> usize {
+fn search(i: isize, j: isize, grid: &[Vec<u8>]) -> usize {
     if grid[i as usize][j as usize] == 9 {
-        visited.insert((i, j));
         return 1
     }
     let mut res = 0;
@@ -14,7 +10,7 @@ fn search(i: isize, j: isize, grid: &[Vec<u8>], visited: &mut HashSet<(isize, is
         if 0 <= x && x < grid.len() as isize
         && 0 <= y && y < grid[0].len() as isize
         && grid[x as usize][y as usize] == grid[i as usize][j as usize] + 1 {
-            res += search(x, y, grid, visited);
+            res += search(x, y, grid);
         }
     }
     return res;
@@ -23,7 +19,7 @@ fn search(i: isize, j: isize, grid: &[Vec<u8>], visited: &mut HashSet<(isize, is
 fn main() {
     let mut grid: Vec<Vec<u8>> = Vec::new();
     for line in std::io::stdin().lines().map(|x| x.unwrap()) {
-        grid.push(line.chars().map(|x| x as u8 - 48).collect());
+        grid.push(line.chars().map(|x| x as u8 - b'0').collect());
     }
     let rows = grid.len();
     let cols = grid[0].len();
@@ -31,7 +27,7 @@ fn main() {
     for i in 0..rows {
         for j in 0..cols {
             if grid[i][j] == 0 {
-                res += search(i as isize, j as isize, &grid, &mut HashSet::new());
+                res += search(i as isize, j as isize, &grid);
             }
         }
     }
