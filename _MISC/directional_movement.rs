@@ -1,4 +1,13 @@
-const DELTAS: [(i32, i32); 8] = [
+type Grid = Vec<Vec<char>>;
+type C = i32;
+
+const DELTAS: [(C, C); 4] = [
+    (0, 1),
+    (-1, 0),
+    (0, -1),
+    (1, 0),
+];
+const DELTAS: [(C, C); 8] = [
     (0, 1),
     (-1, 1),
     (-1, 0),
@@ -9,29 +18,16 @@ const DELTAS: [(i32, i32); 8] = [
     (1, 1),
 ];
 
-const DELTAS: [(i32, i32); 4] = [
-    (0, 1),
-    (-1, 0),
-    (0, -1),
-    (1, 0),
-];
-
-fn valid(i: &i32, j: &i32, grid: &[Vec<i32>]) -> bool {
-    return 0 <= *i && *i < grid.len() as i32 && 0 <= *j && *j < grid[0].len() as i32
+fn valid(i: &C, j: &C, grid: &Grid) -> bool {
+    return 0 <= *i && *i < grid.len() as C && 0 <= *j && *j < grid[0].len() as C;
 }
 
-fn moves(
-    i: i32,
-    j: i32,
-) -> impl Iterator<Item = (i32, i32)> {
-    return DELTAS.iter()
-                .map(move |(di, dj)| (i+*di, j+*dj))
+fn moves(i: C, j: C) -> impl Iterator<Item = (C, C)> {
+    return DELTAS.into_iter().map(move |(di, dj)| (i + di, j + dj));
 }
 
-fn valid_moves(
-    i: i32,
-    j: i32,
-    grid: &[Vec<i32>],
-) -> impl Iterator<Item = (i32, i32)> + '_ {
-    return moves(i, j).filter(|(i, j)| valid(i, j, grid))
+fn valid_moves(i: C, j: C, grid: &Grid) -> impl Iterator<Item = (usize, usize)> + '_ {
+    return moves(i, j)
+        .filter(|(i, j)| valid(i, j, grid))
+        .map(|(i, j)| (i as usize, j as usize));
 }
