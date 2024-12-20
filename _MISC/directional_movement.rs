@@ -22,11 +22,11 @@ fn valid<T>(i: &C, j: &C, grid: &[Vec<T>]) -> bool {
 }
 
 fn moves(i: C, j: C) -> impl Iterator<Item = (C, C)> {
-    return DELTAS.into_iter().map(move |(di, dj)| (i + di, j + dj));
+    return DELTAS.iter().map(move |(di, dj)| (i + di, j + dj));
 }
 
 fn valid_moves<T>(i: C, j: C, grid: &[Vec<T>]) -> impl Iterator<Item = (usize, usize)> + '_ {
     return moves(i, j)
-        .filter(|(i, j)| valid(i, j, grid))
+        .filter(move |(i, j)| valid(i, j, grid))
         .map(|(i, j)| (i as usize, j as usize));
 }
