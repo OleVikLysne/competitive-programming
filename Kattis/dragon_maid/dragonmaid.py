@@ -2,21 +2,20 @@ import sys; input=sys.stdin.readline
 import bisect
 
 def comp(x, y):
-    return P[x] > P[y] or (P[x] == P[y] and x < y)
+    return P[x-1] > P[y-1] or (P[x-1] == P[y-1] and x < y)
 
-def merge(arr1, arr2, k):
+def insort(arr, elem):
     res = []
-    i = 0
-    j = 0
-    for _ in range(k):
-        if i >= len(arr1) and j >= len(arr2):
-            break
-        if i < len(arr1) and (j >= len(arr2) or comp(arr1[i], arr2[j])):
-            res.append(arr1[i])
-            i += 1
+    for i in range(len(arr)):
+        if comp(arr[i], elem):
+            res.append(arr[i])
         else:
-            res.append(arr2[j])
-            j += 1
+            res.append(elem)
+            res.extend(arr[i:9])
+            break
+    else:
+        if len(res) < 10:
+            res.append(elem)
     return res
 
 n = int(input())
@@ -25,21 +24,13 @@ P = []
 for i in range(n):
     p, v = map(int, input().split())
     P.append(p)
-    items.append((i, v))
+    items.append((i+1, v))
 items.sort(key=lambda x: x[1])
 
+table = [[-1], [items[0][0]]]
+table.extend(insort(table[i], items[i][0]) for i in range(1, n))
 
-table = [[] for _ in range(n)]
-table[0] = [items[0][0]]
-for i in range(1, n):
-    table[i] = merge(table[i-1], [items[i][0]], 10)
-
-
-q = int(input())
-for _ in range(q):
+for _ in range(int(input())):
     x, k = map(int, input().split())
     i = bisect.bisect_right(items, x, key = lambda x: x[1])
-    if i == 0:
-        print("-1")
-    else:
-        print(*(table[i-1][j]+1 for j in range(min(k, i))))
+    print(*(table[i][:k]))
