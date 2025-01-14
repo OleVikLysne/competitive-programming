@@ -87,13 +87,8 @@ fn fft(coef: &[Complex], inverse: bool) -> Vec<Complex> {
     if n == 1 {
         return coef.to_vec()
     }
-
-    let mut a_coef = vec![Complex::new(); n / 2];
-    let mut b_coef = vec![Complex::new(); n / 2];
-    for i in 0..n / 2 {
-        a_coef[i] = coef[2 * i];
-        b_coef[i] = coef[2 * i + 1];
-    }
+    let a_coef: Vec<Complex> = coef.iter().step_by(2).map(|x| *x).collect();
+    let b_coef: Vec<Complex> = coef[1..].iter().step_by(2).map(|x| *x).collect();
     let a_fft = fft(&a_coef, inverse);
     let b_fft = fft(&b_coef, inverse);
 
@@ -121,11 +116,11 @@ fn fft(coef: &[Complex], inverse: bool) -> Vec<Complex> {
 fn multiply(p1: &[Complex], p2: &[Complex]) -> Vec<i64> {
     let n = p1.len();
     let mut transform = fft(p1, false);
-    for (i, x) in fft(p2, false).iter().enumerate() {
-        transform[i] *= *x;
+    for (i, x) in fft(p2, false).into_iter().enumerate() {
+        transform[i] *= x;
     }
-    let rev_transform = fft(&transform, true);
-    return rev_transform
+
+    return fft(&transform, true)
         .iter()
         .map(|x| ((x.real / n as f64).round()) as i64)
         .collect();
