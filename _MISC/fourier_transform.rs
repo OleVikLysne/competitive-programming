@@ -82,10 +82,10 @@ impl std::ops::Div<f64> for Complex {
     }
 }
 
-fn fft(coef: &Vec<Complex>, inverse: bool) -> Vec<Complex> {
+fn fft(coef: &[Complex], inverse: bool) -> Vec<Complex> {
     let n = coef.len();
     if n == 1 {
-        return coef.clone();
+        return coef.to_vec()
     }
 
     let mut a_coef = vec![Complex::new(); n / 2];
@@ -118,7 +118,7 @@ fn fft(coef: &Vec<Complex>, inverse: bool) -> Vec<Complex> {
     return res;
 }
 
-fn multiply(p1: &Vec<Complex>, p2: &Vec<Complex>) -> Vec<i64> {
+fn multiply(p1: &[Complex], p2: &[Complex]) -> Vec<i64> {
     let n = p1.len();
     let mut transform = fft(p1, false);
     for (i, x) in fft(p2, false).iter().enumerate() {
