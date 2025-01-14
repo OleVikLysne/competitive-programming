@@ -3,4 +3,4 @@ resolver = "2"
 
 members = [
     "Kattis/nice_path", "Kattis/a_different_list_game", "Kattis/a_fast_walk_in_the_woods", "Kattis/baza", "Kattis/fire_hydrant", "Kattis/flugvallakodar", "sandbox", "Kattis/exclude_scoring", "Kattis/crusaders_of_the_lost_mark", "Kattis/double_deck"
-, "Kattis/just_for_sidekicks", "Kattis/exactly_paired", "Kattis/couple_competition", "Kattis/mali", "Kattis/codforces", "Kattis/jumping_choreography", "Kattis/profitable_pizzas", "Kattis/rubiks_revenge", "Kattis/amazing_race", "Kattis/greaaat", "Kattis/game24", "Kattis/roadwork"]
+, "Kattis/just_for_sidekicks", "Kattis/exactly_paired", "Kattis/couple_competition", "Kattis/mali", "Kattis/codforces", "Kattis/jumping_choreography", "Kattis/profitable_pizzas", "Kattis/rubiks_revenge", "Kattis/amazing_race", "Kattis/greaaat", "Kattis/game24", "Kattis/roadwork", "Kattis/golf_bot"]
