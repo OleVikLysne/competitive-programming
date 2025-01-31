@@ -1,11 +1,13 @@
 class SortedSearchTree:
     '''
-        "op=min" for less than / less than or equal queries
-        "op=max" for greater than / greater than or equal queries
+        "op=min" to query for largest value which is less than / less than or equal to some value
+        "op=max" to query for smallest value which is greater than / greater than or equal to some value
     '''
-    def __init__(self, param: int | None, op = min):
+    def __init__(self, param: int | None, op = min, default = None):
         self.op = op
-        if op == min:
+        if default is not None:
+            self.default = default
+        elif op == min:
             self.default = 1 << 62
         else: #op = max
             self.default = -(1 << 62)
