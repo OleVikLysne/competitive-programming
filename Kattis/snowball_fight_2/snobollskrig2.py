@@ -81,30 +81,22 @@ arrays = [a, b]
 visited = [[False]*n, [False]*m]
 not_def = 0
 while min_idxs[0] < len(arrays[0]) or min_idxs[1] < len(arrays[1]):
-    if min_idxs[0] == len(arrays[0]) or min_idxs[1] < len(arrays[1]) and arrays[1][min_idxs[1]] < arrays[0][min_idxs[0]]:
-        arrays[0], arrays[1] = arrays[1], arrays[0]
-        visited[0], visited[1] = visited[1], visited[0]
-        trees[0], trees[1] = trees[1], trees[0]
-        min_idxs[0], min_idxs[1] = min_idxs[1], min_idxs[0]
-    
     i = 0
     j = 1
-    cur = min_idxs[0]
-    size = arrays[0][min_idxs[0]]
-    visited[0][min_idxs[0]] = True
+    if min_idxs[i] == len(arrays[i]) or min_idxs[j] < len(arrays[j]) and arrays[j][min_idxs[j]] < arrays[i][min_idxs[i]]:
+        i, j = j, i
+    cur = min_idxs[i]
+    visited[i][min_idxs[i]] = True
     not_def += 1
-    while min_idxs[0] < len(arrays[0]) and visited[0][min_idxs[0]]:
-        min_idxs[0] += 1
     while cur < len(arrays[i]):
+        while min_idxs[i] < len(arrays[i]) and visited[i][min_idxs[i]]:
+            min_idxs[i] += 1
         val, idx = trees[j].gt(arrays[i][cur])
-        if val > arrays[i][cur]:
-            trees[j].reset(idx)
-            visited[j][idx] = True
-            cur = idx
-            while min_idxs[j] < len(arrays[j]) and visited[j][min_idxs[j]]:
-                min_idxs[j] += 1
-            i, j = j, i
-        else:
+        if val <= arrays[i][cur]:
             break
+        trees[j].reset(idx)
+        visited[j][idx] = True
+        cur = idx
+        i, j = j, i
 
 print(n+m-not_def)
