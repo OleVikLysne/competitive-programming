@@ -292,3 +292,18 @@ def rotating_calipers(convex_hull: list[Vector]):
             k = (k+1) % n
         max_distance = max(max_distance, convex_hull[i].squared_dist(convex_hull[j]))
     return math.sqrt(max_distance)
+
+def circle_intersection_area(x1, y1, r1, x2, y2, r2):
+    d = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+    if d >= r1 + r2:
+        return 0.0
+    
+    if d <= abs(r1-r2):
+        return math.pi * min(r1, r2)**2
+
+    a = (
+        r1**2 * math.acos((d**2 + r1**2 - r2**2) / (2 * d * r1))
+        + r2**2 * math.acos((d**2 + r2**2 - r1**2) / (2 * d * r2))
+        - 0.5 * math.sqrt((-d + r1 + r2) * (d + r1 - r2) * (d - r1 + r2) * (d + r1 + r2))
+    )
+    return a
