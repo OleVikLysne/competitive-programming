@@ -1,18 +1,10 @@
 class SegmentTree:
-    def __init__(self, array, op=lambda x, y: x + y, default=0, pad=False):
+    def __init__(self, array, op=lambda x, y: x + y, default=0):
         self.op = op
         self.default = default
-
-        if pad:
-            self.n = 1 << ((len(array) - 1).bit_length())
-            pad_amount = self.n - len(array)
-            self.tree = [self.default] * self.n
-            self.tree.extend(array)
-            self.tree.extend(self.default for _ in range(pad_amount))
-        else:
-            self.n = len(array)
-            self.tree = [self.default] * self.n
-            self.tree.extend(array)
+        self.n = len(array)
+        self.tree = [self.default] * self.n
+        self.tree.extend(array)
 
         for i in range(self.n - 1, 0, -1):
             self.tree[i] = self.op(self.tree[2 * i], self.tree[2 * i + 1])
