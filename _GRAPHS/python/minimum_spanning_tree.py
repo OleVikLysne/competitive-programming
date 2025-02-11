@@ -26,13 +26,13 @@ class UnionFind:
 
 
 # edges are on the form (u, v, w) where w is a weight
-def kruskal(edges: list[tuple[int, int, int]], num_nodes):
+def kruskal(edges: list[tuple[int, int, int]], n):
     edges.sort(key=lambda x: x[2], reverse=True)
     selected_edges = []
-    uf = UnionFind(num_nodes)
+    uf = UnionFind(n)
     tree_sum = 0
 
-    while len(selected_edges) < num_nodes - 1:
+    while len(selected_edges) < n - 1:
         u, v, w = edges.pop()
         x = uf.find(u)
         y = uf.find(v)
@@ -54,20 +54,20 @@ import heapq
 
 # prim without edge list (faster, one less element in the pq)
 def prim(g: list[list[tuple[int, int]]]):
-    num_nodes = len(g)
+    n = len(g)
     edges = [(x[1], x[0]) for x in g[0]]
     heapq.heapify(edges)
-    visited = [False]*num_nodes
+    visited = [False]*n
     visited[0] = True
     tree_sum = 0
-    n = 0
-    while n < num_nodes - 1:
+    edge_count = 0
+    while edge_count < n - 1:
         w, v = heapq.heappop(edges)
         if visited[v]:
             continue
         visited[v] = True
         tree_sum += w
-        n += 1
+        edge_count += 1
         for u, w in g[v]:
             if visited[u]:
                 continue
@@ -77,15 +77,15 @@ def prim(g: list[list[tuple[int, int]]]):
 
 # prim with returned edge list
 def prim(g: list[list[tuple[int, int]]]):
-    num_nodes = len(g)
+    n = len(g)
     edges = [(x[1], 0, x[0]) for x in g[0]]
     heapq.heapify(edges)
-    visited = [False]*num_nodes
+    visited = [False]*n
     visited[0] = True
     tree_sum = 0
     selected_edges = []
 
-    while len(selected_edges) < num_nodes - 1:
+    while len(selected_edges) < n - 1:
         w, parent, child = heapq.heappop(edges)
         if visited[child]:
             continue
