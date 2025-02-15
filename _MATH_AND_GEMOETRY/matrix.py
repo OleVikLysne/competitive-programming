@@ -33,3 +33,41 @@ def fib(n, mod: int | None = None):
     A = [[1, 1], [1, 0]]
     res = mat_pow(A, n-1, mod=mod)
     return res[0][0]
+
+
+
+
+def gaussian_elim(A, b):
+    """
+    Solve for the vector x that satisfies Ax = b
+    """
+    n = len(A)
+    for i in range(n):
+        A[i].append(b[i])
+
+    for j in range(n):
+        max_row = max(range(j, n), key = lambda i: abs(A[i][j]))
+        A[j], A[max_row] = A[max_row], A[j]
+        for i in range(j + 1, n):
+            if A[j][j] != 0:
+                c = -A[i][j] / A[j][j]
+                A[i][j] = 0
+                for k in range(j+1, n+1):
+                    A[i][k] += c * A[j][k]
+
+    multiple = False
+    for i in range(n):
+        if all(A[i][j] == 0 for j in range(n)):
+            multiple = True
+            if A[i][-1] != 0:
+                return "inconsistent system"
+    if multiple:
+        return "multiple solutions"
+
+    b = [A[i].pop() for i in range(n)]
+    x = [0]*n
+    for i in range(n - 1, -1, -1):
+        x[i] = b[i] / A[i][i]
+        for k in range(i - 1, -1, -1):
+            b[k] -= A[k][i] * x[i]
+    return x
