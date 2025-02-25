@@ -1,4 +1,5 @@
 import math
+from typing import Union
 
 """
     Class for vector representation. NOT exhaustively tested (yet).
@@ -7,24 +8,24 @@ import math
 
 class Vector:
     def __init__(self, *args):
-        self.coords: list[float | int] = list(args)
+        self.coords: list[Union[float, int]] = list(args)
 
     @property
-    def x(self) -> float | int:
+    def x(self) -> Union[float, int]:
         return self.coords[0]
 
     @property
-    def y(self) -> float | int:
+    def y(self) -> Union[float, int]:
         return self.coords[1]
 
     @property
-    def z(self) -> float | int:
+    def z(self) -> Union[float, int]:
         return self.coords[2]
 
     @property
     def length(self) -> float:
         return math.sqrt(sum(a**2 for a in self.coords))
-    
+
     @property
     def is_zero_vec(self):
         return all(x == 0 for x in self.coords)
@@ -36,10 +37,10 @@ class Vector:
             return self / self.length
         self /= self.length
 
-    def dot(self, other) -> float | int:
+    def dot(self, other) -> Union[float, int]:
         return sum(a * b for a, b in zip(self.coords, other.coords))
 
-    def cross(self, other) -> float | int:
+    def cross(self, other) -> Union[float, int]:
         return self.x * other.y - self.y * other.x
 
     def angle(self, other, radians=False) -> float:
@@ -58,12 +59,12 @@ class Vector:
             return math.radians(ang)
         return ang
 
-    def orient(self, v1, v2) -> float | int:
+    def orient(self, v1, v2) -> Union[float, int]:
         v3 = v1 - self
         v4 = v2 - self
         return v3.cross(v4)
 
-    def rotate(self, theta: float | int, radians=False):
+    def rotate(self, theta: Union[float, int], radians=False):
         """
         theta is assumed to be a value between 0-360 with radians=False.
         Otherwise, theta is assumed to be between 0 and 2*pi.
@@ -88,10 +89,10 @@ class Vector:
         )
 
     def dist(self, other) -> float:
-        return math.dist(self.coords, other.coords)
+        return math.sqrt(self.squared_dist(other))
 
-    def squared_dist(self, other) -> float | int:
-        return (self.x - other.x) ** 2 + (self.y - other.y) ** 2
+    def squared_dist(self, other) -> Union[float, int]:
+        return sum((a - b) ** 2 for a, b in zip(self.coords, other.coords))
 
     def __mul__(self, other):
         if isinstance(other, Vector):
@@ -158,7 +159,7 @@ class Vector:
         if isinstance(other, Vector):
             return self.coords == other.coords
         return False
-    
+
     def __lt__(self, other):
         return self.coords < other.coords
 
@@ -170,8 +171,6 @@ class Vector:
 
     def copy(self):
         return self.__class__(*self.coords)
-
-
 
 
 # Various useful functions
@@ -193,6 +192,8 @@ def intersect(line1: tuple[Vector], line2: tuple[Vector]):
 
 # Convex hull
 from functools import cmp_to_key
+
+
 def graham_scan(points: list[Vector]):
     def compare(anchor: Vector, p1: Vector, p2: Vector):
         o = anchor.orient(p1, p2)
@@ -207,7 +208,7 @@ def graham_scan(points: list[Vector]):
     anchor_idx = 0
     for i in range(1, len(points)):
         p = points[i]
-        #if p.x < anchor.x or (p.x == anchor.x and p.y < anchor.y):
+        # if p.x < anchor.x or (p.x == anchor.x and p.y < anchor.y):
         if p.y < anchor.y or (p.y == anchor.y and p.x < anchor.x):
             anchor = p
             anchor_idx = i
@@ -215,7 +216,7 @@ def graham_scan(points: list[Vector]):
     points[-1], points[anchor_idx] = points[anchor_idx], points[-1]
     points.pop()
     points.sort(key=cmp_to_key(lambda p1, p2: compare(anchor, p1, p2)))
-    #points.sort(key=lambda x: (x - anchor).polar_angle())
+    # points.sort(key=lambda x: (x - anchor).polar_angle())
 
     hull = [anchor]
     for p in points:
@@ -237,22 +238,16 @@ def shoelace(arr: list[Vector]):
     return abs(left - right) / 2
 
 
-
 def point_in_polygon(poly: list[Vector], p: Vector):
     inside = False
     x, y = p.x, p.y
     for i in range(len(poly)):
-        j = (i+1) % len(poly)
-        #line1 = (Vector(10**9+7, 1), p)
-        # line2 = (poly[i], poly[j])
-        # if intersect(line1, line2) is not None:
-        #     inside = not inside
+        j = (i + 1) % len(poly)
         i_x, i_y = poly[i].x, poly[i].y
         j_x, j_y = poly[j].x, poly[j].y
-        if (i_y > y) != (j_y > y) and x < (j_x-i_x) * (y-i_y) / (j_y-i_y) + i_x:
+        if (i_y > y) != (j_y > y) and x < (j_x - i_x) * (y - i_y) / (j_y - i_y) + i_x:
             inside = not inside
     return inside
-
 
 
 def polygon_intersect(poly1: list[Vector], poly2: list[Vector]):
@@ -265,7 +260,6 @@ def polygon_intersect(poly1: list[Vector], poly2: list[Vector]):
     points = list(get_inside(poly1, poly2))
     # all points in p2 that are inside p1
     points.extend(get_inside(poly2, poly1))
-
 
     # include all the intersection points
     for i in range(len(poly1)):
@@ -285,25 +279,29 @@ def rotating_calipers(convex_hull: list[Vector]):
     n = len(convex_hull)
     max_distance = 0
     for i in range(n):
-        j = (i+1) % n
-        k = (j+1) % n
-        while convex_hull[i].squared_dist(convex_hull[j]) < convex_hull[i].squared_dist(convex_hull[k]):
+        j = (i + 1) % n
+        k = (j + 1) % n
+        while convex_hull[i].squared_dist(convex_hull[j]) < convex_hull[i].squared_dist(
+            convex_hull[k]
+        ):
             j = k
-            k = (k+1) % n
+            k = (k + 1) % n
         max_distance = max(max_distance, convex_hull[i].squared_dist(convex_hull[j]))
     return math.sqrt(max_distance)
+
 
 def circle_intersection_area(x1, y1, r1, x2, y2, r2):
     d = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
     if d >= r1 + r2:
         return 0.0
-    
-    if d <= abs(r1-r2):
-        return math.pi * min(r1, r2)**2
+
+    if d <= abs(r1 - r2):
+        return math.pi * min(r1, r2) ** 2
 
     a = (
         r1**2 * math.acos((d**2 + r1**2 - r2**2) / (2 * d * r1))
         + r2**2 * math.acos((d**2 + r2**2 - r1**2) / (2 * d * r2))
-        - 0.5 * math.sqrt((-d + r1 + r2) * (d + r1 - r2) * (d - r1 + r2) * (d + r1 + r2))
+        - 0.5
+        * math.sqrt((-d + r1 + r2) * (d + r1 - r2) * (d - r1 + r2) * (d + r1 + r2))
     )
     return a
