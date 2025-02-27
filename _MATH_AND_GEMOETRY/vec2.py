@@ -1,34 +1,18 @@
 import math
 from typing import Union
 
-"""
-    Class for vector representation. NOT exhaustively tested (yet).
-"""
-
-
-class Vector:
-    def __init__(self, *args):
-        self.coords: list[Union[float, int]] = list(args)
-
-    @property
-    def x(self) -> Union[float, int]:
-        return self.coords[0]
-
-    @property
-    def y(self) -> Union[float, int]:
-        return self.coords[1]
-
-    @property
-    def z(self) -> Union[float, int]:
-        return self.coords[2]
+class Vec2:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
 
     @property
     def length(self) -> float:
-        return math.sqrt(sum(a**2 for a in self.coords))
+        return math.sqrt(self.x**2 + self.y**2)
 
     @property
     def is_zero_vec(self):
-        return all(x == 0 for x in self.coords)
+        return self.x == 0 and self.y == 0
 
     def normalize(self, in_place=True):
         if self.is_zero_vec:
@@ -38,7 +22,7 @@ class Vector:
         self /= self.length
 
     def dot(self, other) -> Union[float, int]:
-        return sum(a * b for a, b in zip(self.coords, other.coords))
+        return self.x * other.x + self.y * other.y
 
     def cross(self, other) -> Union[float, int]:
         return self.x * other.y - self.y * other.x
@@ -47,12 +31,12 @@ class Vector:
         res = math.acos(
             self.normalize(in_place=False).dot(other.normalize(in_place=False))
         )
-        if not radians:
-            return math.degrees(res)
-        return res
+        if radians:
+            return res
+        return math.degrees(res)
 
     def polar_angle(self, radians=False) -> float:
-        ang = self.angle(Vector(1, 0))
+        ang = self.angle(Vec2(1, 0))
         if self.y < 0:
             ang = 360 - ang
         if radians:
@@ -60,9 +44,10 @@ class Vector:
         return ang
 
     def orient(self, v1, v2) -> Union[float, int]:
-        v3 = v1 - self
-        v4 = v2 - self
-        return v3.cross(v4)
+        return (v1.x-self.x) * (v2.y - self.y) - (v1.y - self.y) * (v2.x-self.x)
+        # v3 = v1 - self
+        # v4 = v2 - self
+        # return v3.cross(v4)
 
     def rotate(self, theta: Union[float, int], radians=False):
         """
@@ -70,8 +55,6 @@ class Vector:
         Otherwise, theta is assumed to be between 0 and 2*pi.
         Rotates counter-clockwise.
         """
-        if len(self.coords) != 2:
-            raise Exception("Rotate is currently only implemented for 2D")
         if radians is False:
             if theta == 90:
                 return self.__class__(-self.y, self.x)
@@ -92,55 +75,55 @@ class Vector:
         return math.sqrt(self.squared_dist(other))
 
     def squared_dist(self, other) -> Union[float, int]:
-        return sum((a - b) ** 2 for a, b in zip(self.coords, other.coords))
+        return (self.x - other.x)**2 + (self.y - other.y)**2
 
     def __mul__(self, other):
-        if isinstance(other, Vector):
+        if isinstance(other, Vec2):
             raise Exception("Not implemented")
         elif isinstance(other, (int, float)):
-            return self.__class__(*(a * other for a in self.coords))
+            return self.__class__(self.x * other, self.y * other)
 
     def __truediv__(self, other):
-        if isinstance(other, Vector):
+        if isinstance(other, Vec2):
             raise Exception("Not implemented")
         elif isinstance(other, (int, float)):
-            return self.__class__(*(a / other for a in self.coords))
+            return self.__class__(self.x / other, self.y / other)
 
     def __add__(self, other):
-        if not isinstance(other, Vector):
+        if not isinstance(other, Vec2):
             raise Exception()
-        return self.__class__(*(a + b for a, b in zip(self.coords, other.coords)))
+        return self.__class__(self.x + other.x, self.y + other.y)
 
     def __sub__(self, other):
-        if not isinstance(other, Vector):
+        if not isinstance(other, Vec2):
             raise Exception()
-        return self.__class__(*(a - b for a, b in zip(self.coords, other.coords)))
+        return self.__class__(self.x - other.x, self.y - other.y)
 
     def __neg__(self):
-        return self.__class__(*(-a for a in self.coords))
+        return self.__class__(-self.x, -self.y)
 
     def __imul__(self, other):
-        if isinstance(other, Vector):
+        if isinstance(other, Vec2):
             raise Exception("Not implemented")
-        for i in range(len(self.coords)):
-            self.coords[i] *= other
+        self.x *= other
+        self.y *= other
         return self
 
     def __itruediv__(self, other):
-        if isinstance(other, Vector):
+        if isinstance(other, Vec2):
             raise Exception("Not implemented")
-        for i in range(len(self.coords)):
-            self.coords[i] /= other
+        self.x /= other
+        self.y /= other
         return self
 
     def __iadd__(self, other):
-        for i in range(len(self.coords)):
-            self.coords[i] += other.coords[i]
+        self.x += other.x
+        self.y += other.y
         return self
 
     def __isub__(self, other):
-        for i in range(len(self.coords)):
-            self.coords[i] -= other.coords[i]
+        self.x -= other.x
+        self.y -= other.x
         return self
 
     def __radd__(self, other):
@@ -152,32 +135,33 @@ class Vector:
     def __rmul__(self, other):
         return self.__mul__(other)
 
-    def __iter__(self):
-        return iter(self.coords)
-
     def __eq__(self, other):
-        if isinstance(other, Vector):
-            return self.coords == other.coords
+        if isinstance(other, Vec2):
+            return self.x == other.x and self.y == other.y
         return False
 
     def __lt__(self, other):
-        return self.coords < other.coords
+        if self.x == other.x:
+            return self.y < other.y
+        return self.x < other.x
 
     def __gt__(self, other):
-        return self.coords > other.coords
+        if self.x == other.x:
+            return self.y > other.y
+        return self.x > other.x
 
     def __repr__(self):
-        return str(self.coords)
+        return f"Vec2({self.x} {self.y})"
 
     def copy(self):
-        return self.__class__(*self.coords)
+        return self.__class__(self.x, self.y)
 
 
 # Various useful functions
 
 
 # line intersect
-def intersect(line1: tuple[Vector], line2: tuple[Vector]):
+def intersect(line1: tuple[Vec2], line2: tuple[Vec2]):
     (a, b), (c, d) = line1, line2
     oa = c.orient(d, a)
     ob = c.orient(d, b)
@@ -186,7 +170,7 @@ def intersect(line1: tuple[Vector], line2: tuple[Vector]):
     if oa * ob < 0 and oc * od < 0:
         x = (a.x * ob - b.x * oa) / (ob - oa)
         y = (a.y * ob - b.y * oa) / (ob - oa)
-        return Vector(x, y)
+        return Vec2(x, y)
     return None
 
 
@@ -194,8 +178,8 @@ def intersect(line1: tuple[Vector], line2: tuple[Vector]):
 from functools import cmp_to_key
 
 
-def graham_scan(points: list[Vector]):
-    def compare(anchor: Vector, p1: Vector, p2: Vector):
+def graham_scan(points: list[Vec2]):
+    def compare(anchor: Vec2, p1: Vec2, p2: Vec2):
         o = anchor.orient(p1, p2)
         if o < 0:
             return 1
@@ -228,7 +212,7 @@ def graham_scan(points: list[Vector]):
 
 
 # Area of polygon
-def shoelace(arr: list[Vector]):
+def shoelace(arr: list[Vec2]):
     left, right = 0, 0
     n = len(arr)
     for i in range(n):
@@ -238,7 +222,7 @@ def shoelace(arr: list[Vector]):
     return abs(left - right) / 2
 
 
-def point_in_polygon(poly: list[Vector], p: Vector):
+def point_in_polygon(poly: list[Vec2], p: Vec2):
     inside = False
     x, y = p.x, p.y
     for i in range(len(poly)):
@@ -250,7 +234,7 @@ def point_in_polygon(poly: list[Vector], p: Vector):
     return inside
 
 
-def polygon_intersect(poly1: list[Vector], poly2: list[Vector]):
+def polygon_intersect(poly1: list[Vec2], poly2: list[Vec2]):
     def get_inside(poly1, poly2):
         for i in range(len(poly1)):
             if point_in_polygon(poly2, poly1[i]):
@@ -275,7 +259,7 @@ def polygon_intersect(poly1: list[Vector], poly2: list[Vector]):
     return graham_scan(points)
 
 
-def rotating_calipers(convex_hull: list[Vector]):
+def rotating_calipers(convex_hull: list[Vec2]):
     n = len(convex_hull)
     max_distance = 0
     for i in range(n):
