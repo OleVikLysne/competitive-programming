@@ -1,0 +1,6 @@
+[package]
+name = "firing_the_phaser"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
