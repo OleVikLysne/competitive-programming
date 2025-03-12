@@ -25,3 +25,13 @@ def factorize(number, primes):
     if number > 1:
         factors.append(number)
     return factors
+
+import random
+def is_prime(n):
+    if 1 < n < 4:
+        return True
+    for _ in range(100):
+        a = random.randint(2, n-2)
+        if pow(a, n-1, n) != 1:
+            return False
+    return True
