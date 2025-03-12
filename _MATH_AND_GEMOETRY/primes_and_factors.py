@@ -1,4 +1,3 @@
-
 def sieve(n):
     n += 1
     prime = [True]*n
@@ -11,6 +10,7 @@ def sieve(n):
         for j in range(i*2, n, i):
             prime[j] = False
     return l
+
 
 def factorize(number, primes):
     factors = []
@@ -26,9 +26,12 @@ def factorize(number, primes):
         factors.append(number)
     return factors
 
+
 import random
 def is_prime(n):
-    if 1 < n < 4:
+    if n < 2:
+        return False
+    if n < 4:
         return True
     for _ in range(100):
         a = random.randint(2, n-2)
