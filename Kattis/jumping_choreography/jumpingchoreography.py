@@ -1,41 +1,24 @@
-import sys
-
-input = sys.stdin.readline
-MAX = 1_000_001
-
+import sys; input = sys.stdin.readline
+MAX = 10**6 + 1
 
 class FenwickTree:
-    def __init__(self, param, op=lambda x, y: x+y):
-        self.default = 0
-        self.op = op
-        if op == max:
-            self.default = -2**62
-        elif op == min:
-            self.default = 2**62
+    def __init__(self, param):
+        self.n = param
+        self.tree = [0] * (self.n + 1)
 
-        if isinstance(param, int):
-            self.n = param
-            self.tree = [self.default] * (self.n + 1)
-        else:  # list
-            self.n = len(param)
-            self.tree = [self.default] * (self.n + 1)
-            for i in range(1, self.n + 1):
-                self.tree[i] = self.op(self.tree[i], param[i - 1])
-                if (j := i + (i & -i)) <= self.n:
-                    self.tree[j] = self.op(self.tree[j], self.tree[i])
 
     def update(self, i, val):
         i += 1
         while i <= self.n:
-            self.tree[i] = self.op(self.tree[i], val)
+            self.tree[i] += val
             i += i & -i
 
     # [0, r]
     def query(self, r):
         r += 1
-        res = self.default
+        res = 0
         while r > 0:
-            res = self.op(res, self.tree[r])
+            res += self.tree[r]
             r -= r & -r
         return res
 
@@ -43,81 +26,62 @@ class FenwickTree:
     def sum(self, l, r):
         return self.query(r) - self.query(l - 1)
 
-
-def moves(n, k):
+odd = [(0, 0), (1, 1)]
+even = [(0, 0), (3, 2)]
+for i in range(2, MAX):
+    arr = even if i % 2 == 0 else odd
+    k = arr[-1][0]
     sum_k = (k * (k + 1)) // 2
-    while True:
-        if sum_k >= n and (sum_k - n) % 2 == 0:
-            return k
+    while sum_k < i or (sum_k - i) % 2 != 0:
         k += 1
         sum_k += k
+    if k != arr[-1][0]:
+        arr.append((k, i))
 
-
-def update(pos, tree: FenwickTree, jump_arr, delta):
-    # left
-    tree.update(pos, -jump_arr[0][0] * delta)
-    prev = jump_arr[0][0]
-    for i in range(1, len(jump_arr)):
-        step_size, k = jump_arr[i]
-        p = pos - k + 1
-        if p <= 0:
-            break
-        tree.update(p, delta * (prev - step_size))
-        prev = step_size
-    tree.update(0, delta * prev)
-
-    # right
+def _update(p, d, tree: FenwickTree, jumps):
     prev = 0
-    for step_size, k in jump_arr:
-        p = pos + k
-        if p >= MAX:
+    prev_pos = 0
+    for cost, jump in reversed(jumps):
+        if jump <= p:
+            tree.update(prev_pos, d * (cost - prev))
+            prev = cost
+            prev_pos = (p - jump) // 2 + 1
+
+    prev = 0
+    for cost, jump in jumps:
+        i = p + jump
+        if i >= MAX:
             break
-        tree.update(p, delta * (step_size - prev))
-        prev = step_size
+        tree.update(i//2, d * (cost - prev))
+        prev = cost
 
-
-def change_frog(pos, delta):
-    if pos % 2 == 0:
-        update(pos, even_tree, even, delta)
-        update(pos, odd_tree, odd, delta)
+def update(i, d):
+    if i % 2 == 0:
+        _update(i, d, et, even)
+        _update(i, d, ot, odd)
     else:
-        update(pos, even_tree, odd, delta)
-        update(pos, odd_tree, even, delta)
-
+        _update(i, d, et, odd)
+        _update(i, d, ot, even)
 
 def query(t):
     if t % 2 == 0:
-        return even_tree.query(t)
-    return odd_tree.query(t)
+        return et.query(t // 2)
+    return ot.query(t // 2)
 
+ot = FenwickTree(MAX // 2 + 1)
+et = FenwickTree(MAX // 2 + 1)
 
-even = [(3, 2)]
-odd = [(1, 1)]
-for i in range(3, MAX, 2):
-    m = moves(i, odd[-1][0])
-    if m != odd[-1][0]:
-        odd.append((m, i))
-
-for i in range(4, MAX, 2):
-    m = moves(i, even[-1][0])
-    if m != even[-1][0]:
-        even.append((m, i))
-
-even_tree = FenwickTree(MAX)
-odd_tree = FenwickTree(MAX)
-
-n, t = map(int, input().split())
+_, t = map(int, input().split())
 for i in map(int, input().split()):
-    change_frog(i, 1)
-c = int(input())
-for _ in range(c):
+    update(i, 1)
+
+for _ in range(int(input())):
     qt, i = input().split()
     i = int(i)
     if qt == "t":
         t = i
     elif qt == "+":
-        change_frog(i, 1)
+        update(i, 1)
     else:
-        change_frog(i, -1)
-
+        update(i, -1)
     sys.stdout.write(f"{query(t)} ")
