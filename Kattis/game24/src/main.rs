@@ -87,7 +87,7 @@ fn foo(
             let (y, yc) = numbers[j];
             for op_idx in 0..4 {
                 let op = OPS[op_idx];
-                if op == div && y == 0.0 { continue }
+                if op_idx == 3 && y == 0.0 { continue }
                 let z = op(x, y);
                 let zc = xc+yc;
                 parent.push((i, j, op_idx));
