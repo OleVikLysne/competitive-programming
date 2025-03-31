@@ -212,14 +212,23 @@ def graham_scan(points: list[Vec2]):
 
 
 # Area of polygon
-def shoelace(arr: list[Vec2]):
-    left, right = 0, 0
-    n = len(arr)
+def shoelace(poly: list[Vec2]):
+    n = len(poly)
+    left = right = 0
     for i in range(n):
         j = (i + 1) % n
-        left += arr[i].x * arr[j].y
-        right += arr[i].y * arr[j].x
+        left += poly[i].x * poly[j].y
+        right += poly[i].y * poly[j].x
     return abs(left - right) / 2
+
+# Circumference of polygon
+def poly_circumference(poly: list[Vec2]):
+    n = len(poly)
+    s = 0
+    for i in range(len(poly)):
+        j = (i + 1) % n
+        s += poly[i].dist(poly[j])
+    return s
 
 
 def point_in_polygon(poly: list[Vec2], p: Vec2):
