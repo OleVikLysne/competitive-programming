@@ -36,10 +36,12 @@ class Vec2:
         return math.degrees(res)
 
     def polar_angle(self, radians=False) -> float:
-        res = math.atan2(self.x, self.y)
+        ang = self.angle(Vec2(1, 0))
+        if self.y < 0:
+            ang = 360 - ang
         if radians:
-            return res
-        return math.degrees(res)
+            return math.radians(ang)
+        return ang
 
     def orient(self, v1, v2) -> Union[float, int]:
         return (v1.x-self.x) * (v2.y - self.y) - (v1.y - self.y) * (v2.x-self.x)
@@ -153,6 +155,9 @@ class Vec2:
 
     def copy(self):
         return self.__class__(self.x, self.y)
+    
+    def __hash__(self):
+        return hash((self.x, self.y))
 
 
 # Various useful functions
@@ -314,3 +319,40 @@ def circle_intersection_area(x1, y1, r1, x2, y2, r2):
         * math.sqrt((-d + r1 + r2) * (d + r1 - r2) * (d - r1 + r2) * (d + r1 + r2))
     )
     return a
+
+
+import sys; input=sys.stdin.readline
+g: dict[Vec2, list[Vec2]] = {}
+for _ in range(int(input())):
+    x1, y1, x2, y2 = map(int, input().split())
+    p1 = Vec2(x1, y1)
+    p2 = Vec2(x2, y2)
+    g.setdefault(p1, []).append(p2)
+    g.setdefault(p2, []).append(p1)
+for p in g:
+    g[p].sort(key=lambda a: (a-p).polar_angle())
+
+seen = set()
+areas = []
+tot = 0
+for v in g:
+    for u in g[v]:
+        if (v, u) in seen:
+            continue
+        seen.add((v, u))
+        cur = u
+        prev = v
+        poly = [v]
+        while cur != v:
+            poly.append(cur)
+            i = (g[cur].index(prev)+1) % len(g[cur])
+            prev, cur = cur, g[cur][i]
+            seen.add((prev, cur))
+        tup = tuple(sorted(poly))
+        if tup not in seen:
+            seen.add(tup)
+            areas.append(shoelace(poly)**2)
+tot = sum(areas)
+if len(areas) > 1:
+    tot -= max(areas)
+print(tot)
