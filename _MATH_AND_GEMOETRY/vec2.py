@@ -47,6 +47,22 @@ class Vec2:
         # v4 = v2 - self
         # return v3.cross(v4)
 
+    def right_of(self, other, origin=None) -> bool:
+        if origin is None:
+            return self.cross(other) > 0
+        return origin.orient(self, other) > 0
+
+    def left_of(self, other, origin=None) -> bool:
+        if origin is None:
+            return self.cross(other) < 0
+        return origin.orient(self, other) < 0
+
+    def inc_right_of(self, other, origin=None) -> bool:
+        return not self.left_of(other, origin)
+
+    def inc_left_of(self, other, origin=None) -> bool:
+        return not self.right_of(other, origin)
+
     def rotate(self, theta: Union[float, int], radians=False):
         """
         theta is assumed to be a value between 0-360 with radians=False.
@@ -151,6 +167,9 @@ class Vec2:
     def __repr__(self):
         return f"Vec2({self.x} {self.y})"
 
+    def __hash__(self):
+        return hash((self.x, self.y))
+
     def copy(self):
         return self.__class__(self.x, self.y)
 
@@ -172,59 +191,25 @@ def intersect(line1: tuple[Vec2], line2: tuple[Vec2]):
     return None
 
 
-# Convex hull
-from functools import cmp_to_key
-
-
-def graham_scan(points: list[Vec2]):
-    def compare(anchor: Vec2, p1: Vec2, p2: Vec2):
-        o = anchor.orient(p1, p2)
-        if o < 0:
-            return 1
-        else:
-            return -1
-
-    if len(points) <= 2:
-        return [x for x in points]
-    anchor = points[0]
-    anchor_idx = 0
-    for i in range(1, len(points)):
-        p = points[i]
-        # if p.x < anchor.x or (p.x == anchor.x and p.y < anchor.y):
-        if p.y < anchor.y or (p.y == anchor.y and p.x < anchor.x):
-            anchor = p
-            anchor_idx = i
-
-    points[-1], points[anchor_idx] = points[anchor_idx], points[-1]
-    points.pop()
-    points.sort(key=cmp_to_key(lambda p1, p2: compare(anchor, p1, p2)))
-    # points.sort(key=lambda x: (x - anchor).polar_angle())
-
-    hull = [anchor]
-    for p in points:
-        while len(hull) > 1 and hull[-2].orient(hull[-1], p) <= 0:
-            hull.pop()
-        hull.append(p)
-
-    return hull
-
-
-def graham_scan(points: list[Vec2]):
+def graham_scan(points: list[Vec2]) -> list[Vec2]:
+    """
+    Returns the convex hull sorted counter-clockwise
+    """
     points.sort()
-    top = []
-    for p in points:
-        while len(top) >= 2 and top[-2].orient(top[-1], p) >= 0:
-            top.pop()
-        top.append(p)
-
     bottom = []
-    for p in reversed(points):
-        while len(bottom) >= 2 and bottom[-2].orient(bottom[-1], p) >= 0:
+    for p in points:
+        while len(bottom) >= 2 and p.inc_right_of(bottom[-1], bottom[-2]):
             bottom.pop()
         bottom.append(p)
 
-    top += bottom[1:-1]
-    return top
+    top = []
+    for p in reversed(points):
+        while len(top) >= 2 and p.inc_right_of(top[-1],top[-2]):
+            top.pop()
+        top.append(p)
+    
+    bottom.extend(top[1:-1])
+    return bottom
 
 
 # Area of polygon
@@ -247,14 +232,28 @@ def poly_circumference(poly: list[Vec2]):
     return s
 
 
-def point_in_polygon(poly: list[Vec2], p: Vec2):
+def collinear(a: Vec2, b: Vec2, c: Vec2):
+    return a.orient(b, c) == 0
+
+def is_on(p: Vec2, p1: Vec2, p2: Vec2):
+    if not collinear(p1, p2, p):
+        return False
+    if p1.x != p2.x:
+        return p1.x <= p.x <= p2.x or p2.x <= p.x <= p1.x
+    return p1.y <= p.y <= p2.y or p2.y <= p.y <= p1.y
+
+def inside_polygon(poly: list[Vec2], p: Vec2) -> bool:
     inside = False
     x, y = p.x, p.y
     for i in range(len(poly)):
         j = (i + 1) % len(poly)
+        if is_on(p, poly[i], poly[j]):
+            return True
         i_x, i_y = poly[i].x, poly[i].y
         j_x, j_y = poly[j].x, poly[j].y
         if (i_y > y) != (j_y > y) and x < (j_x - i_x) * (y - i_y) / (j_y - i_y) + i_x:
+            if inside is True:
+                return False
             inside = not inside
     return inside
 
@@ -262,7 +261,7 @@ def point_in_polygon(poly: list[Vec2], p: Vec2):
 def polygon_intersect(poly1: list[Vec2], poly2: list[Vec2]):
     def get_inside(poly1, poly2):
         for i in range(len(poly1)):
-            if point_in_polygon(poly2, poly1[i]):
+            if inside_polygon(poly2, poly1[i]):
                 yield poly1[i]
 
     # all points in p1 that are inside p2
@@ -284,18 +283,16 @@ def polygon_intersect(poly1: list[Vec2], poly2: list[Vec2]):
     return graham_scan(points)
 
 
-def rotating_calipers(convex_hull: list[Vec2]):
-    n = len(convex_hull)
+def rotating_calipers(hull: list[Vec2]):
+    n = len(hull)
     max_distance = 0
+    j = 1
+    k = 2 % n
     for i in range(n):
-        j = (i + 1) % n
-        k = (j + 1) % n
-        while convex_hull[i].squared_dist(convex_hull[j]) < convex_hull[i].squared_dist(
-            convex_hull[k]
-        ):
+        while hull[i].squared_dist(hull[j]) < hull[i].squared_dist(hull[k]):
             j = k
             k = (k + 1) % n
-        max_distance = max(max_distance, convex_hull[i].squared_dist(convex_hull[j]))
+        max_distance = max(max_distance, hull[i].squared_dist(hull[j]))
     return math.sqrt(max_distance)
 
 
@@ -314,3 +311,24 @@ def circle_intersection_area(x1, y1, r1, x2, y2, r2):
         * math.sqrt((-d + r1 + r2) * (d + r1 - r2) * (d - r1 + r2) * (d + r1 + r2))
     )
     return a
+
+
+def inside_convex(hull: list[Vec2], p: Vec2) -> bool:
+    """
+    Returns true if p is inside the convex hull (or on the boundary). Assumes the hull is sorted counter-clockwise
+    """
+    n = len(hull)
+    if n < 3:
+        return False
+    if p.right_of(hull[1], hull[0]):
+        return False
+    if p.left_of(hull[n-1], hull[0]):
+        return False
+    l, r = 0, n-1
+    while l < r:
+        mid = (l+r)//2
+        if p.inc_left_of(hull[mid], hull[0]):
+            l = mid + 1
+        else:
+            r = mid
+    return p.inc_left_of(hull[r], hull[r-1])
