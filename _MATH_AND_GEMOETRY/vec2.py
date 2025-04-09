@@ -252,8 +252,6 @@ def inside_polygon(poly: list[Vec2], p: Vec2) -> bool:
         i_x, i_y = poly[i].x, poly[i].y
         j_x, j_y = poly[j].x, poly[j].y
         if (i_y > y) != (j_y > y) and x < (j_x - i_x) * (y - i_y) / (j_y - i_y) + i_x:
-            if inside is True:
-                return False
             inside = not inside
     return inside
 
