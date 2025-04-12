@@ -1,3 +1,6 @@
+import math
+
+
 def sieve(n):
     n += 1
     prime = [True]*n
@@ -38,3 +41,25 @@ def is_prime(n):
         if pow(a, n-1, n) != 1:
             return False
     return True
+
+
+def chinese_remainder(mod_pairs: tuple[int, int]):
+    total = 0
+    prod = math.prod(x[1] for x in mod_pairs)
+    for a, m in mod_pairs:
+        p = prod // m
+        total += a * mul_inv(p, m) * p
+    return total % prod
+
+def mul_inv(a, b):
+    if b == 1: 
+        return 1
+    b0 = b
+    x0, x1 = 0, 1
+    while a > 1:
+        q = a // b
+        a, b = b, a % b
+        x0, x1 = x1 - q * x0, x0
+    if x1 < 0:
+        x1 += b0
+    return x1
