@@ -10,19 +10,24 @@ class UnionFind:
         self.rank = [0] * n
 
     def find(self, i):
+        j = i
+        while self.parent[j] != j:
+            j = self.parent[j]
         while self.parent[i] != i:
-            i = self.parent[i]
-        return i
+            k = self.parent[i]
+            self.parent[i] = j
+            i = k
+        return j
 
     def union(self, x, y):
         x = self.find(x)
         y = self.find(y)
         if self.rank[x] > self.rank[y]:
             self.parent[y] = x
-            self.rank[x] += 1
+            self.rank[x] += self.rank[y]
         else:
             self.parent[x] = y
-            self.rank[y] += 1
+            self.rank[y] += self.rank[x]
 
 
 # edges are on the form (u, v, w) where w is a weight
