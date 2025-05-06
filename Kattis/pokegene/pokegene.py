@@ -91,8 +91,7 @@ for _ in range(q):
         a = nodes[indices[i]]
         b = nodes[indices[i+l-1]]
         c = lca(a, b)
-        d = lca(c, nodes[indices[i+l]]) if i+l <  k else 0
-        e = lca(c, nodes[indices[i-1]]) if i-1 >= 0 else 0
-        add = depth[c] - max(depth[d], depth[e])
-        tot += max(0, add)
+        d = lca(c, nodes[indices[i+l]]) if i+l <  k else root
+        e = lca(c, nodes[indices[i-1]]) if i-1 >= 0 else root
+        tot += depth[c] - max(depth[d], depth[e])
     print(tot)
