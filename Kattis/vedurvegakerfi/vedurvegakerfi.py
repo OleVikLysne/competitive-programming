@@ -2,14 +2,14 @@ import sys; input=sys.stdin.readline; print=sys.stdout.write
 
 class UnionFind:
     def __init__(self, n):
-        self.parent = [x for x in range(n)]
-        self.size = [0] * n
+        self.parent = [-1]*n
+        self.size = [0]*n
 
     def find(self, i):
         j = i
-        while self.parent[j] != j:
+        while self.parent[j] != -1:
             j = self.parent[j]
-        while (k := self.parent[i]) != i:
+        while (k := self.parent[i]) != -1:
             self.parent[i] = j
             i = k
         return j
@@ -17,13 +17,13 @@ class UnionFind:
     def union(self, x, y):
         x = self.find(x)
         y = self.find(y)
-        if self.size[x] > self.size[y]:
-            self.parent[y] = x
-            self.size[x] += self.size[y]
-        else:
-            self.parent[x] = y
-            self.size[y] += self.size[x]
-
+        if x == y:
+            return False
+        if self.size[x] < self.size[y]:
+            x, y = y, x
+        self.parent[y] = x
+        self.size[x] += self.size[y]
+        return True
 
 def kruskal(edges: list[tuple[int, int, int]], n):
     edges.sort(key=lambda x: x[2])
@@ -33,10 +33,7 @@ def kruskal(edges: list[tuple[int, int, int]], n):
 
     while selected_edges < n - 1:
         u, v, w = edges.pop()
-        x = uf.find(u)
-        y = uf.find(v)
-        if x != y:
-            uf.union(x, y)
+        if uf.union(u, v):
             selected_edges += 1
             g[u].append((v, w))
             g[v].append((u, w))

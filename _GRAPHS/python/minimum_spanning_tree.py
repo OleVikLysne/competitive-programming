@@ -6,14 +6,14 @@
 
 class UnionFind:
     def __init__(self, n):
-        self.parent = [x for x in range(n)]
-        self.size = [0] * n
+        self.parent = [-1]*n
+        self.size = [0]*n
 
     def find(self, i):
         j = i
-        while self.parent[j] != j:
+        while self.parent[j] != -1:
             j = self.parent[j]
-        while (k := self.parent[i]) != i:
+        while (k := self.parent[i]) != -1:
             self.parent[i] = j
             i = k
         return j
@@ -21,12 +21,13 @@ class UnionFind:
     def union(self, x, y):
         x = self.find(x)
         y = self.find(y)
-        if self.size[x] > self.size[y]:
-            self.parent[y] = x
-            self.size[x] += self.size[y]
-        else:
-            self.parent[x] = y
-            self.size[y] += self.size[x]
+        if x == y:
+            return False
+        if self.size[x] < self.size[y]:
+            x, y = y, x
+        self.parent[y] = x
+        self.size[x] += self.size[y]
+        return True
 
 
 # edges are on the form (u, v, w) where w is a weight
@@ -38,12 +39,9 @@ def kruskal(edges: list[tuple[int, int, int]], n):
 
     while len(selected_edges) < n - 1:
         u, v, w = edges.pop()
-        x = uf.find(u)
-        y = uf.find(v)
-        if x != y:
+        if uf.union(u, v):
             selected_edges.append((u, v, w))
             tree_sum += w
-            uf.union(x, y)
 
     return selected_edges, tree_sum
 
