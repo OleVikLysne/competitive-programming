@@ -1,59 +1,60 @@
-const MAX_SIZE: usize = 5*10_usize.pow(5);
-
 struct SegmentTree<T> {
-    tree: [[usize; 2]; MAX_SIZE*2],
-    arr: [T; MAX_SIZE],
-    op: fn(T, T) -> bool,
+    tree: Vec<[T; 2]>,
+    n: usize,
+    op: fn(T, T) -> bool
 }
 
-impl<T> SegmentTree<T>
-where
-    T: Clone + Copy + Default + Eq + Ord,
+impl<T> SegmentTree<T> 
+    where
+    T: Clone + Copy + Default + Eq,
 {
-    fn new(arr: [T; MAX_SIZE], op: fn(T, T) -> bool) -> Self {
-        let mut tree = [[0; 2]; MAX_SIZE*2];
-        for i in 0..MAX_SIZE {
-            tree[MAX_SIZE+i] = [i, i];
+    fn new(arr: &[T], op: fn(T, T) -> bool, default: T) -> Self {
+        let n = arr.len();
+        let mut tree = Vec::with_capacity(2*n);
+        tree.extend(std::iter::repeat([default, default]).take(n));
+        for x in arr {
+            tree.push([*x, default]);
         }
 
-        for i in (1..MAX_SIZE).rev() {
-            tree[i] = Self::op(&tree[i * 2], &tree[i * 2 + 1], op, &arr);
+        for i in (1..n).rev() {
+            
+            tree[i] = Self::op(&tree[i*2], &tree[i*2+1], op);
         }
-        SegmentTree { tree, arr, op}
+        SegmentTree{tree, n, op}
     }
 
-    fn op(v1: &[usize; 2], v2: &[usize; 2], _op: fn(T, T) -> bool, arr: &[T]) -> [usize; 2] {
-        let mut res: [usize; 2] = [0; 2];
+    fn op(v1: &[T; 2], v2: &[T; 2], _op: fn(T, T) -> bool) -> [T; 2] {
+        let mut res: [T; 2] = [T::default(); 2];
         let mut i = 0;
         let mut j = 0;
         for k in 0..2 {
-            if ((i != 1 || v1[0] != v1[1]) && _op(arr[v1[i]], arr[v2[j]])) || (j == 1 && v2[0] == v2[1]) {
+            if _op(v1[i], v2[j]) {
                 res[k] = v1[i];
                 i += 1;
             } else {
                 res[k] = v2[j];
-                j += 1
+                j += 1;
             }
         }
         return res
     }
 
     // inclusive on both sides [l, r]
-    fn query(&self, mut l: usize, mut r: usize) -> [usize; 2] {
-        l += MAX_SIZE;
-        r += MAX_SIZE;
+    fn query(&self, mut l: usize, mut r: usize)  -> [T; 2] {
+        l += self.n;
+        r += self.n;
         if l == r {
             return self.tree[l];
         }
-        let mut res = Self::op(&self.tree[l], &self.tree[r], self.op, &self.arr);
+        let mut res = Self::op(&self.tree[l], &self.tree[r], self.op);
         let mut pl = l / 2;
         let mut pr = r / 2;
         while pl != pr {
             if l % 2 == 0 {
-                res = Self::op(&res, &self.tree[l + 1], self.op, &self.arr);
+                res = Self::op(&res, &self.tree[l+1], self.op);
             }
             if r % 2 == 1 {
-                res = Self::op(&res, &self.tree[r - 1], self.op, &self.arr);
+                res = Self::op(&res, &self.tree[r-1], self.op);
             }
             l = pl;
             r = pr;
@@ -71,34 +72,20 @@ use std::str::{Chars, FromStr, SplitAsciiWhitespace};
 fn main() {
     let mut io = IO::new();
     let (_, q): (usize, usize) = io.r2();
-    let mut arr = [i64::MAX; MAX_SIZE];
-    for (i, x) in io.line().enumerate() {
-        arr[i] = x;
-    }
-    let min_tree = SegmentTree::new(arr, |x, y| x < y);
-    let max_tree = SegmentTree::new(arr, |x, y| x > y);
+    let arr: Vec<i64> = io.vec();
+    let min_tree = SegmentTree::new(&arr, |x, y| x < y, i64::MAX);
+    let max_tree = SegmentTree::new(&arr, |x, y| x > y, i64::MIN);
     for _ in 0..q {
         let (mut l, mut r): (usize, usize) = io.r2();
         l -= 1;
         r -= 1;
-        let min = min_tree.query(l+1, r-1);
-        let max = max_tree.query(l+1, r-1);
-        let mut res = (arr[l]*arr[r]*arr[min[0]]*arr[min[1]]).max(arr[l]*arr[r]*arr[max[0]]*arr[max[1]]);
-        if max[0] != min[0] {
-            res = res.max(arr[l]*arr[r]*arr[max[0]]*arr[min[0]]);
-        }
-        if max[0] != min[1] {
-            res = res.max(arr[l]*arr[r]*arr[max[0]]*arr[min[1]]);
-        }
-        if min[0] != max[1] {
-            res = res.max(arr[l]*arr[r]*arr[min[0]]*arr[max[1]]);
-        }
-        if min[1] != max[1] {
-            res = res.max(arr[l]*arr[r]*arr[min[1]]*arr[max[1]]);
-        }
+        let min = min_tree.query(l + 1, r - 1);
+        let max = max_tree.query(l + 1, r - 1);
+        let res = (arr[l] * arr[r] * min[0] * min[1])
+            .max(arr[l] * arr[r] * max[0] * max[1])
+            .max(arr[l] * arr[r] * max[0] * min[0]);
         print!("{} ", res);
     }
-
 }
 
 struct IO {
