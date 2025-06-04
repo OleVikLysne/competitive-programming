@@ -1,0 +1,6 @@
+[package]
+name = "an_easy_array_problem"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
