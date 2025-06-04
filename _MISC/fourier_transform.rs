@@ -11,6 +11,28 @@ impl Complex {
             imag: 0.0,
         }
     }
+
+    fn pow(&self, n: i32) -> Self {
+        let (r, theta) = self.polar();
+        let l = r.powi(n);
+        let real = l * (n as f64*theta).cos();
+        let imag = l * (n as f64*theta).sin();
+        return Complex{real, imag}
+    }
+
+    fn polar(&self) -> (f64, f64) {
+        let r = (self.real.powi(2)+self.imag.powi(2)).sqrt();
+        let mut denom = self.real;
+        if denom == 0.0 {
+            denom = 0.00001;
+        }
+        let mut theta = (self.imag/denom).atan();
+        if self.real < 0.0 {
+            theta += std::f64::consts::PI;
+        }
+        return (r, theta)
+
+    }
 }
 
 impl std::ops::Mul<Complex> for Complex {
