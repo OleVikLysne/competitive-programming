@@ -28,11 +28,9 @@ def mat_pow(A, power: int, mod: int | None = None):
     return res
             
 def fib(n, mod: int | None = None):
-    if n < 2:
-        return n
     A = [[1, 1], [1, 0]]
-    res = mat_pow(A, n-1, mod=mod)
-    return res[0][0]
+    res = mat_pow(A, n, mod=mod)
+    return res[0][1]
 
 
 
