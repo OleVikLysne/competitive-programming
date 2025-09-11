@@ -12,6 +12,7 @@ def mat_mul(A, B, mod: int | None = None):
                 
     return C
 
+
 def mat_pow(A, power: int, mod: int | None = None):
     rows, cols = len(A), len(A[0])
     if rows != cols:
@@ -26,15 +27,25 @@ def mat_pow(A, power: int, mod: int | None = None):
         A = mat_mul(A, A, mod=mod)
         power >>= 1
     return res
-            
+
+
+def mat_add(A, B, mod: int | None = None):
+    if len(A) != len(B) or len(A[0]) != len(B[0]):
+        return None # cant add matrices with dimension mismatch
+    rows, cols = len(A), len(A[0])
+    C = [[0]*cols for _ in range(rows)]
+    for i in range(rows):
+        for j in range(cols):
+            C[i][j] = A[i][j] + B[i][j]
+            if mod is not None:
+                C[i][j] %= mod
+    return C
+
+    
 def fib(n, mod: int | None = None):
-    if n < 2:
-        return n
     A = [[1, 1], [1, 0]]
-    res = mat_pow(A, n-1, mod=mod)
-    return res[0][0]
-
-
+    res = mat_pow(A, n, mod=mod)
+    return res[0][1]
 
 
 def gaussian_elim(A, b):
