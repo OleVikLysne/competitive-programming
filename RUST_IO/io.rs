@@ -39,16 +39,16 @@ impl IO {
         return self.buf.split_ascii_whitespace().map(|x| self.parse(x));
     }
 
-    fn linenl<T: FromStr>(&mut self, n: usize) -> impl Iterator<Item = T> + '_ {
+    fn lineln<T: FromStr>(&mut self, n: usize) -> impl Iterator<Item = T> + '_ {
         return (0..n).map(|_| self.r());
     }
-    
+
     fn vec<T: FromStr>(&mut self) -> Vec<T> {
         return self.line().collect();
     }
 
-    fn vecnl<T: FromStr>(&mut self, n: usize) -> Vec<T> {
-        return self.linenl(n).collect();
+    fn vecln<T: FromStr>(&mut self, n: usize) -> Vec<T> {
+        return self.lineln(n).collect();
     }
 
     fn chars(&mut self) -> Chars {
@@ -63,9 +63,8 @@ impl IO {
     }
 
     fn print_vec<T: Display>(&self, vec: &[T]) {
-        for x in vec {
-            print!("{} ", *x);
-        }
+        let vec_string = vec.iter().map(|x| x.to_string() + " ").collect::<String>();
+        println!("{}", vec_string);
     }
 
     fn r<T: FromStr>(&mut self) -> T {
