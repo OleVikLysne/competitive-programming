@@ -41,7 +41,7 @@ class Vec2:
         return math.degrees(res)
 
     def polar_angle(self, radians=False) -> float:
-        res = math.atan2(self.x, self.y)
+        res = math.atan2(self.y, self.x)
         if radians:
             return res
         return math.degrees(res)
