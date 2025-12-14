@@ -9,3 +9,4 @@ target
 Cargo.lock
 sandbox/
 input
+.venv
