@@ -9,3 +9,6 @@ rustflags = [
 rustflags = [
     "-C", "link-arg=-Wl,--stack,2560000000"
 ]
+
+[build]
+rustflags = ["-A", "mismatched_lifetime_syntaxes", "-A", "unused_variables", "-A", "unused_mut"]
