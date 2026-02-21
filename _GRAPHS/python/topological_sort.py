@@ -1,3 +1,27 @@
+def topological_sort(g: list[list[int]]):
+    n = len(g)
+    in_deg = [0]*n
+    for v in range(n):
+        for u in g[v]:
+            in_deg[u] += 1
+    
+    stack = [v for v in range(n) if in_deg[v] == 0]
+    order = []
+    while stack:
+        v = stack.pop()
+        order.append(v)
+        for u in g[v]:
+            in_deg[u] -= 1
+            if in_deg[u] == 0:
+                stack.append(u)
+
+    for v in range(n):
+        if in_deg[v] != 0:
+            return False
+
+    return order
+
+
 from sys import setrecursionlimit
 setrecursionlimit(2**30)
 
