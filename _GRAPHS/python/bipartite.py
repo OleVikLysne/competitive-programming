@@ -3,9 +3,7 @@ g: list[list[int]] = ...
 def bipartite(g):
     def _bipartite(g, v, colours, c=0):
         if colours[v] != -1:
-            if colours[v] != c:
-                return False
-            return True
+            return colours[v] == c
         colours[v] = c
         c = (c+1) % 2
         for u in g[v]:
