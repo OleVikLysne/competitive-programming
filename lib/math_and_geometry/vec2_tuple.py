@@ -136,21 +136,27 @@ def graham_scan(points):
     """
     Returns the convex hull sorted counter-clockwise
     """
-    points.sort()
-    bottom = []
-    for p in points:
-        while len(bottom) >= 2 and inc_right_of(p, bottom[-1], bottom[-2]):
-            bottom.pop()
-        bottom.append(p)
+    n = len(points)
+    if n <= 1:
+        return points[:]
 
-    top = []
-    for p in reversed(points):
-        while len(top) >= 2 and inc_right_of(p, top[-1], top[-2]):
-            top.pop()
-        top.append(p)
-    
-    bottom.extend(top[1:-1])
-    return bottom
+    points.sort()
+    hull = []
+    for p in points:
+        while len(hull) > 1 and inc_right_of(p, hull[-1], hull[-2]):
+            hull.pop()
+        hull.append(p)
+
+    k = len(hull)
+    hull.append(points[-2])
+    for i in range(n-3, -1, -1):
+        p = points[i]
+        while len(hull) > k and inc_right_of(p, hull[-1], hull[-2]):
+            hull.pop()
+        hull.append(p)
+    hull.pop()
+
+    return hull
 
 
 # Area of polygon
