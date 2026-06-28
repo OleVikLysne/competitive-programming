@@ -17,11 +17,10 @@ def push_flow(source, sink, g, capacity):
         if v == sink:
             break
         for u in g[v]:
-            if pred[u] != -1:
+            if pred[u] != -1 or (cap := capacity[v][u]) <= 0:
                 continue
-            if capacity[v][u] > 0:
-                stack.append((u, min(flow, capacity[v][u])))
-                pred[u] = v
+            stack.append((u, min(flow, cap)))
+            pred[u] = v
     else:
         return 0
 
