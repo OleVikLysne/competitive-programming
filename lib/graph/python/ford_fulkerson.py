@@ -4,22 +4,21 @@ source: int = ...
 sink: int = ...
 
 
-INF = float("inf")
+INF = 2**60
 
-def push_flow(source, sink, g, capacity):
-    n = len(g)
+def push_flow(source, sink, g, capacity, pred, step, i):
     stack = [(source, INF)]
     #queue = deque([(source, INF)])
-    pred = [-1]*n
     pred[source] = source
     while stack:
         v, flow = stack.pop()
         if v == sink:
             break
         for u in g[v]:
-            if pred[u] != -1 or (cap := capacity[v][u]) <= 0:
+            if step[u] == i or (cap := capacity[v][u]) <= 0:
                 continue
             stack.append((u, min(flow, cap)))
+            step[u] = i
             pred[u] = v
     else:
         return 0
@@ -34,9 +33,12 @@ def push_flow(source, sink, g, capacity):
 
 
 def ford_fulkerson(source, sink, g, capacity):
+    n = len(g)
+    step = [-1]*n
+    pred = [-1]*n
     total_flow = 0
-    while True:
-        flow = push_flow(source, sink, g, capacity)
+    for i in range(INF):
+        flow = push_flow(source, sink, g, capacity, pred, step, i)
         total_flow += flow
         if flow == INF or flow == 0:
             break
