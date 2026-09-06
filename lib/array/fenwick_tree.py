@@ -74,3 +74,35 @@ class FenwickTree:
     # [l, r]
     def sum(self, l, r):
         return self.query(r) - self.query(l - 1)
+
+
+
+class FenwickTree2D:
+    def __init__(self, rows: int, cols: int):
+        self.rows = rows
+        self.cols = cols
+        self.tree = [[0]*(cols+1) for _ in range(rows+1)]
+
+    def update(self, row: int, col: int, val):
+        i = row + 1
+        while i <= self.rows:
+            j = col + 1
+            while j <= self.cols:
+                self.tree[i][j] += val
+                j += j & -j
+            i += i & -i
+
+    def query(self, row, col):
+        res = 0
+        i = row + 1
+        while i > 0:
+            j = col + 1
+            while j > 0:
+                res += self.tree[i][j]
+                j -= j & -j
+            i -= i & -i
+        return res
+
+    def sum_region(self, r1, c1, r2, c2):
+        return self.query(r2, c2) - self.query(r1-1, c2) - self.query(r2, c1-1) + self.query(r1-1, c1-1)
+    
