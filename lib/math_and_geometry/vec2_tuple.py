@@ -184,9 +184,13 @@ def collinear(a, b, c):
 def is_on(p, p1, p2):
     if not collinear(p1, p2, p):
         return False
-    if p1[0] != p2[0]:
-        return min(p1[0], p2[0]) <= p[0] <= max(p1[0], p2[0])
-    return min(p1[1], p2[1]) <= p[1] <= max(p1[1], p2[1])
+    x, y = p
+    x1, y1 = p1
+    x2, y2 = p2
+    return (
+        min(x1, x2) <= x <= max(x1, x2)
+        and min(y1, y2) <= y <= max(y1, y2)
+    )
 
 def inside_polygon(poly, p):
     n = len(poly)
@@ -206,7 +210,7 @@ def strictly_inside_polygon(poly, p):
     n = len(poly)
     for i in range(n):
         j = (i + 1) % n
-        if collinear(p, poly[i], poly[j]):
+        if is_on(p, poly[i], poly[j]):
             return False
     return inside_polygon(poly, p)
 
