@@ -194,16 +194,22 @@ def is_on(p, p1, p2):
 
 def inside_polygon(poly, p):
     n = len(poly)
+    x, y = p
     inside = False
-    x, y = p[0], p[1]
-    for i in range(n):
-        j = (i + 1) % n
-        if is_on(p, poly[i], poly[j]):
+
+    for i in range(len(poly)):
+        p1 = poly[i]
+        p2 = poly[(i + 1) % n]
+        if is_on(p, p1, p2):
             return True
-        ix, iy = poly[i][0], poly[i][1]
-        jx, jy = poly[j][0], poly[j][1]
-        if (iy > y) != (jy > y) and x < (jx - ix) * (y - iy) / (jy - iy) + ix:
+        if p1[1] > p2[1]:
+            p1, p2 = p2, p1
+
+        x1, y1 = p1
+        x2, y2 = p2
+        if y1 < y <= y2 and (x - x1) * (y2 - y1) < (x2 - x1) * (y - y1):
             inside = not inside
+
     return inside
 
 def strictly_inside_polygon(poly, p):
